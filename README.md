@@ -1,0 +1,2 @@
+# Tarkvaratehnika
+Projekt aines tarkvaratehnika
