@@ -114,3 +114,16 @@
   }
   return true;  
  }
+/////////////////////// kalkulaator /////////////////////////////////
+
+function Arvuta(){   
+       var laenukest=document.getElementById("laenukestus").value;
+	   var laenusum=document.getElementById("laenusumma").value;
+	   var aastaintr=document.getElementById("aastaintress").value;
+	   var maksepuhk=document.getElementById("maksepuhkus").value;
+	   var intress=(((laenukest-maksepuhk)/12)/100)*aastaintr;
+	   var kuumakse=(laenusum/(laenukest-maksepuhk)+intress).toFixed(2);
+	   
+	   kuumakse=kuumakse.toString().replace(/\B(?=(\d{})+(?!\d))/g,",");
+	   document.getElementById("kuumakse").innerHTML="Kuumakse : "+kuumakse+"EUR";	    	
+   }
