@@ -3,11 +3,11 @@
 <html>
 <meta charset="UTF-8">
     
-<!--For the web site to work on all devices and screen resolutions-->
+<!--For the web site to work on all devices and screen resolutions -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
     <title>Rahaplaneerija</title>
-    <link rel="stylesheet" type="text/css" href="styles_sk.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
     <div class="header">
@@ -20,75 +20,45 @@
             
             <div class="nav">
                 <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Eelarve kalkulaator</a></li>
+                    <li><a href="#">Pealeht</a></li>
+                    <li><a href="#">Säästmise kalkulaator</a></li>
                     <li><a href="#">Laenukalkulaator</a></li>
                     <li><a href="#">Meist</a></li>
                 </ul>
             </div>
+            
+             <div class="row">
+              <div class="container_login">
+                <form action="/action_page." align="right">
+                    <div class="input-group">
+                      <label><b>Kasutajanimi</b></label>
+                      <input type="text" placeholder="Sisestage kasutajanimi" name="uname" required />
+                    </div>
+                    <div class="input-group">
+                      <label><b>Parool</b></label>
+                      <input type="text" placeholder="Sisestage parool" name="psw" required />
+                    </div>
+                    <button type="submit">Logi sisse</button>
+                    <div class="input-group">
+                      <label>
+                        <input type="checkbox" checked="checked" />
+                          Jäta mind meelde
+                      </label>
+                    </div>
+                    <div class="input-group">
+                      <button type="button" class="cancelbtn">Tühista</button>
+                      <span class="psw">Unustasid <a href="#">parooli?</a></span>
+                    </div>
+                </form>
+              </div>
+            </div>
         </div>
     </div>
-    
-    <table id="table2" style ="margin-top:100px"; border="1">
-        <tr>
-            <td></td>
-            <td>Tulud kokku</td>
-            <td>Kulud kokku</td>
-            <td>Jääk</td>
-        </tr>
-        <tr>
-            <td>Prognoositud</td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-        </tr>
-        <tr>
-            <td>Tegelik</td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-        </tr>
-    
-    </table>
-    
-    
-    
+
     <div class="container">
     <div class="content_main">
-
-     <div>
-        <input type="text" class="input-column" id="liik" name="liik" placeholder="Sisesta nimi">
-        <input type="text" class="input-column" id="summa" name="summa" placeholder="Sisesta eeldatav summa">
-        <input type="text" class="input-column" id="summa2" name="summa2" placeholder="Sisesta tegelik summa">
-        <select size="1" class="input-column" id="kulutulu" name="kulutulu">
-          <option value="Kulu" selected="selected">
-            Kulu
-          </option>
-          <option value="Tulu">
-            Tulu
-          </option>
-       </select>
-       <button type="button" class="input-column" id="lisa-rida">Lisa!</button>
-     </div>
-
-
-    <table id="table" class="display" cellspacing="0" width="100%">
-        <thead>
-            <tr>
-                <th>Nimetus</th>
-                <th>Sisesta eeldatav summa</th>
-                <th>Sisesta tegelik summa</th>
-                <th>Kulu või tulu</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-        </tbody>
-    </table>
-        </div>
+        <p align=center>Siia tuleb mingi pilt/tekst orsth</p>
     </div>
-
-    <script src="kalkuscript.js"></script>
-
+    </div>
 </body>
 </html>
