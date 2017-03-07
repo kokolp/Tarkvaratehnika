@@ -16,7 +16,7 @@ InfoID TEXT(255) NULL,
 InfoCategory ENUM('tulud','kulud')NULL
 InfoNimi TEXT(255) NULL,
 EeldatavSumm INTEGER NULL,
-TegelikSumm);
+TegelikSumm INTEGER NULL);
 
 
 
