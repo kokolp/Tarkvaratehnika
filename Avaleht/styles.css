@@ -1,106 +1,94 @@
-/* Avalehega seotud */
-body {
-    width: 100%;
-    margin: auto;
-}
+<!DOCTYPE html>
 
-.content_main {
-    margin-top: 200px;
-}
-.container {
-    width: 960px;
-    margin: 0 auto;
-}
-
-.container_login {
-    float: right;
-    font-family: "Helvetica";
-    font-size: 12px;
-    padding: 16px;
-    color: #fff;
-
-}
-
-input[type=text], input[type=password] {
-    width= 100%;
-    padding: 6px 10px;
-    margin: 4px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-
-span.psw {
-    float: right;
-    padding-top: 16px;
-    color: white;
-}
-
-.cancelbtn {
-    width: 50%;
-    padding: 5px 9px;
-    float: right;
+<html>
+<meta charset="UTF-8">
     
-}
+<!--For the web site to work on all devices and screen resolutions-->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <title>Rahaplaneerija</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        
+        <div class="container">
+            
+            <div class="logo">
+                <h1><a href="#">Rahaplaneerija</a></h1>
+            </div>
+            
+            <div class="nav">
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Eelarve kalkulaator</a></li>
+                    <li><a href="#">Laenukalkulaator</a></li>
+                    <li><a href="#">Meist</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <table id="table2" style ="margin-top:100px"; border="1">
+        <tr>
+            <td></td>
+            <td>Tulud kokku</td>
+            <td>Kulud kokku</td>
+            <td>Jääk</td>
+        </tr>
+        <tr>
+            <td>Prognoositud</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>Tegelik</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+        </tr>
+    
+    </table>
+    
+    
+    
+    <div class="container">
+    <div class="content_main">
 
-.align-right{
-    float: right;
-}
+     <div>
+        <input type="text" class="input-column" id="liik" name="liik" placeholder="Sisesta nimi">
+        <input type="text" class="input-column" id="summa" name="summa" placeholder="Sisesta eeldatav summa">
+        <input type="text" class="input-column" id="summa2" name="summa2" placeholder="Sisesta tegelik summa">
+        <select size="1" class="input-column" id="kulutulu" name="kulutulu">
+          <option value="Kulu" selected="selected">
+            Kulu
+          </option>
+          <option value="Tulu">
+            Tulu
+          </option>
+       </select>
+       <button type="button" class="input-column" id="lisa-rida">Lisa!</button>
+     </div>
 
-button {
-    cursor: pointer;
-    width: 50%;
-}
-.header {
-    background: black;
-    width: 100%;
-    top: 0;
-    position: fixed;
-}
 
-input {
-    display: block;
-}
+    <table id="table" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Nimetus</th>
+                <th>Sisesta eeldatav summa</th>
+                <th>Sisesta tegelik summa</th>
+                <th>Kulu või tulu</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
+        </div>
+    </div>
 
-b{
-    color: white;
-}
+    <script src="kalkuscript.js"></script>
 
-.logo{
-    float: left;
-    font-family: "Helvetica";
-    font-size: 15px;
-}
-
-a{
-    text-decoration: none;
-    color: white;
-}
-
-li{
-    list-style: none;   
-    float: left;
-    margin-left: 15px;
-    padding-top: 15px;
-    font-family: "Helvetica";
-}
-
-.nav{
-    float: right;
-}
-
-/* Säästukalkulaatori jaoks */
-
-.content_budget{
-    margin-top: 80px;
-}
-
-.saastupealkiri {
-    font-family: "Helvetica";
-    font-size: 16px;
-}
-
-.osa2 {
-    font-family: "Helvetica";
-    font-size: 16px;
-}
+</body>
+</html>
