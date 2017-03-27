@@ -48,7 +48,7 @@ public class Newpass extends HttpServlet {
     	   int i=value.execute("UPDATE Klient SET userpassword_1= newpass WHERE uemail=uuspsw");
     	   con.commit();
     	   value.close();
-    	   System.out.println("Sellel emaili saadetud uus password");
+    	   System.out.println("Sellel emaili saadetud uus parool");
     	   
        }
        catch(Exception e){
