@@ -40,6 +40,7 @@ public class Registration extends HttpServlet {
 		String usernimi = request.getParameter("usernimi"); 
 		String userperekonnanimi = request.getParameter("userperekonnanimi"); 
 		String useradress = request.getParameter("useradress"); 
+		String usertelefon = request.getParameter("usertelefon"); 
 		String uemail = request.getParameter("uemail"); 
 		String userpassword_1 = request.getParameter("userpassword_1"); 
 		
