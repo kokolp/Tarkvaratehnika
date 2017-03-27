@@ -22,16 +22,7 @@ public class LoginProcess extends HttpServlet {
      * @see HttpServlet#HttpServlet()
      */
 	
-	 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	 
-		 response.getContentType("text/html");
-		 response.setStatus(HttpServletResponse.SC_OK);
-		 PrintWriter out = response.getWriter();
-		 out.write("sucess");
-		 uot.flush();
-		 out.close();
-		 
-	 }
+	
    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 //doGet(request, response);
