@@ -1,0 +1,18 @@
+<template>
+  <nav class="navbar navbar-default">
+    <ul class="nav navbar-nav">
+      <li class="${row.active ? 'active' : ''}" repeat.for="row of router.navigation">
+        <a href.bind="row.href">${row.title}</a>
+      </li>
+    </ul>
+  </nav>
+   <div class="container">
+   <router-view></router-view>
+   	</div>
+    <hr />
+   	<footer>
+   	<div class="copyright">
+	    <p>&copy; Rahaplaneerija 2017. All rights reserved.</p>
+	</div>
+   	</footer>
+</template>
