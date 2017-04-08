@@ -15,17 +15,17 @@ export class App {
   			nav: true
   		},
   		{
-  			route: "login",
-  			moduleId: "login",
-  			title: "Login",
-  			nav: true
-  		},
-  		{
   			route: "kalkulaator",
   			moduleId: "kalkulaator",
-  			title: "Eelarvekalkulaator",
+  			title: "Eelarve kalkulaator",
   			nav: true
   		},
+      {
+        route: "login",
+        moduleId: "login",
+        title: "Logi sisse",
+        nav: true
+      },
   	])
   } 
 }
