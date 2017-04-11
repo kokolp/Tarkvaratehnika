@@ -1,6 +1,8 @@
 package ttu.tteh.user;
 
 import java.util.List;
+import java.util.Optional;
+import java.lang.RuntimeException;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,4 +34,13 @@ public class UserController {
 	public User getUser(@PathVariable("id") long userId) {
 		return userService.getUserById(userId);
 	}
+
+	@RequestMapping(value="/login", method=RequestMethod.POST,
+		consumes = "application/json")
+	public User login(@RequestBody LoginHelper login) {
+		System.out.println(login.getEmail()+login.getPassword());
+		return userService.loginUser(login).orElseThrow(()->new RuntimeException("Sellist kasutajat ei eksisteeri!"));
+
+	}
+
 }

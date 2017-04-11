@@ -1,10 +1,9 @@
 package ttu.tteh.user;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-
-import ttu.tteh.car.Car;
 
 @Service
 public class UserService {
@@ -17,7 +16,6 @@ public class UserService {
 
 	User addUser(User user) {
 		// here you can do some validations etc before saving the user
-		user.setCar(new Car());
 		return userRepository.save(user);
 	}
 
@@ -27,5 +25,9 @@ public class UserService {
 
 	User getUserById(long userId) {
 		return userRepository.findOne(userId);
+	}
+
+	Optional<User> loginUser(LoginHelper login) {
+		return userRepository.findByEmailAndPassword(login.getEmail(), login.getPassword());
 	}
 }

@@ -99,9 +99,11 @@
           "aurelia-bootstrapper",
           "aurelia-dependency-injection",
           "aurelia-event-aggregator",
+          "aurelia-fetch-client",
           "aurelia-framework",
           "aurelia-history",
           "aurelia-history-browser",
+          "aurelia-http-client",
           "aurelia-loader",
           "aurelia-loader-default",
           "aurelia-logging",
@@ -132,6 +134,11 @@
             "path": "../node_modules/aurelia-testing/dist/amd",
             "main": "aurelia-testing",
             "env": "dev"
+          },
+          {
+            "name": "aurelia-auth",
+            "path": "../node_modules/aurelia-auth/dist/amd",
+            "main": "aurelia-auth"
           }
         ]
       }
