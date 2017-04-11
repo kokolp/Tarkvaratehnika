@@ -1,6 +1,7 @@
 package ttu.tteh.user;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -9,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends CrudRepository<User, Long>{
 	@Override
 	public List<User> findAll();
+	public Optional<User> findByEmailAndPassword(String email, String password);
 }
+

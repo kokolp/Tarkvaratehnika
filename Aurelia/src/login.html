@@ -1,111 +1,116 @@
 <template>
 
-<div if.bind="!register">
-	<div class="wrapper style1">
-	  <div class="container">
-	    <div class="row">
-	        <article id="main" class="special">
-	          <header>
-	            <h2>Logi sisse</h2>
-	            <span class="byline"> Kasutajana on Sul palju rohkem võimalusi - saad oma kulud salvestada, et saada terviklikum ülevaade, kuhu raha kaob. </span> </header>
-	          </article>  
-	    </div>
-	  </div>
-	</div>
-	<hr/>
-	<form class="form-horizontal">
-	  <div class="form-group">
-	    <label for="inputEmail3" class="col-sm-2 control-label">Email</label>
-	    <div class="col-sm-10">
-	      <input type="email" class="form-control" id="inputEmail3" placeholder="Sisestage meiliaadress">
-	    </div>
-	  </div>
-	  <div class="form-group">
-	    <label for="inputPassword3" class="col-sm-2 control-label">Parool</label>
-	    <div class="col-sm-10">
-	      <input type="password" class="form-control" id="inputPassword3" placeholder="Sisestage parool">
-	    </div>
-	  </div>
-	  <div class="form-group">
-	    <div class="col-sm-offset-2 col-sm-10">
-	      <div class="checkbox">
-	        <label>
-	          <input type="checkbox"> Jäta mind meelde
-	        </label>
-	      </div>
-	    </div>
-	  </div>
-	  <div class="form-group">
-	    <div class="col-sm-offset-2 col-sm-10">
-	      <button type="submit" class="btn btn-default">Logi sisse</button>
-	      <button type="register" class="btn btn-default" click.trigger="toggleRegister()">Registreeri</button>
-	    </div>
-	  </div>
-	</form>
-</div>
 
-<div if.bind="register">
-	<div class="container">
-		<div class="row main">
-			<div class="panel-heading">
-	            <div class="panel-title text-center">
-	            	<h1 class="title">Registreeru Rahaplaneerija kasutajaks</h1>
-	               		<hr />
-	            </div>
-	        </div> 
-	<div class="main-login main-center">
-		<form class="form-horizontal" method="post" action="#">
-			<div class="form-group">
-				<label for="name" class="cols-sm-2 control-label">Sinu nimi</label>
-				<div class="cols-sm-10">
-					<div class="input-group">
-						<span class="input-group-addon"><i class="fa fa-user fa" aria-hidden="true"></i></span>
-						<input type="text" class="form-control" name="name" id="name"  placeholder="Sisestage nimi"/>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="email" class="cols-sm-2 control-label">Sinu meiliaadress</label>
-				<div class="cols-sm-10">
-					<div class="input-group">
-						<span class="input-group-addon"><i class="fa fa-envelope fa" aria-hidden="true"></i></span>
-						<input type="text" class="form-control" name="email" id="email"  placeholder="Sisestage meiliaadress"/>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="username" class="cols-sm-2 control-label">Kasutajanimi</label>
-				<div class="cols-sm-10">
-					<div class="input-group">
-						<span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
-						<input type="text" class="form-control" name="username" id="username"  placeholder="Sisestage kasutajanimi"/>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="password" class="cols-sm-2 control-label">Parool</label>
-				<div class="cols-sm-10">
-					<div class="input-group">
-						<span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
-						<input type="password" class="form-control" name="password" id="password"  placeholder="Sisestage parool"/>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="confirm" class="cols-sm-2 control-label">Korrake parooli</label>
-				<div class="cols-sm-10">
-					<div class="input-group">
-						<span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
-							<input type="password" class="form-control" name="confirm" id="confirm"  placeholder="Korrake parooli"/>
-					</div>
-				</div>
-			</div>
-			<div class="form-group ">
-				<button type="button" class="btn btn-primary btn-lg btn-block login-button">Registreeru</button>
-			</div>
+	<div if.bind="!register">
+		<div class="wrapper style1">
+		  <div class="container">
+		    <div class="row">
+		        <article id="main" class="special">
+		          <header>
+		            <h2>Logi sisse</h2>
+		            <span class="byline"> Kasutajana on Sul palju rohkem võimalusi - saad oma kulud salvestada, et saada terviklikum ülevaade, kuhu raha kaob. </span> </header>
+		          </article>  
+		    </div>
+		  </div>
+		</div>
+		<hr/>
+
+		<form class="form-horizontal">
+		  <div class="form-group">
+		    <label for="inputEmail3" class="col-sm-2 control-label">Email</label>
+		    <div class="col-sm-10">
+		      <input type="email" class="form-control" id="inputEmail3" placeholder="Sisestage meiliaadress" value.bind="userData.email">
+		    </div>
+		  </div>
+		  <div class="form-group">
+		    <label for="inputPassword3" class="col-sm-2 control-label" >Parool</label>
+		    <div class="col-sm-10">
+		      <input type="password" class="form-control" id="inputPassword3" placeholder="Sisestage parool" value.bind="userData.password">
+		    </div>
+		  </div>
+		  <div class="form-group">
+		    <div class="col-sm-offset-2 col-sm-10">
+		      <div class="checkbox">
+		        <label>
+		          <input type="checkbox">Jäta mind meelde
+		        </label>
+		      </div>
+		    </div>
+		  </div>
+		  <div class="form-group">
+		    <div class="col-sm-offset-2 col-sm-10">
+		      <button type="submit" class="btn btn-default" click.delegate="loginUser()">Logi sisse</button>
+		      <button type="button" class="btn btn-default" click.trigger="toggleRegister()">Registreeri</button>
+		    </div>
+		  </div>
 		</form>
 	</div>
-</div>
-</div>
-</div>
+
+	<div if.bind="register">
+		<div class="container">
+			<div class="row main">
+				<div class="panel-heading">
+		            <div class="panel-title text-center">
+		            	<h1 class="title">Registreeru Rahaplaneerija kasutajaks</h1>
+		               		<hr />
+		            </div>
+		        </div> 
+
+		<div if.bind="error">Viga!</div>
+
+		<div class="main-login main-center">
+			<form class="form-horizontal" submit.delegate="addUser()">
+				<div class="form-group">
+					<label for="name" class="cols-sm-2 control-label">Sinu nimi</label>
+					<div class="cols-sm-10">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-user fa" aria-hidden="true"></i></span>
+							<input type="text" class="form-control" name="name" id="name" placeholder="Sisestage nimi" value.bind="userData.name"/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="email" class="cols-sm-2 control-label">Sinu meiliaadress</label>
+					<div class="cols-sm-10">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-envelope fa" aria-hidden="true"></i></span>
+							<input type="text" class="form-control" name="email" id="email" value.bind="userData.email" placeholder="Sisestage meiliaadress"/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="username" class="cols-sm-2 control-label">Kasutajanimi</label>
+					<div class="cols-sm-10">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
+							<input type="text" class="form-control" name="username" id="username" placeholder="Sisestage kasutajanimi" value.bind="userData.username"/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="password" class="cols-sm-2 control-label">Parool</label>
+					<div class="cols-sm-10">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
+							<input type="password" class="form-control" name="password" id="password" placeholder="Sisestage parool" value.bind="userData.password"/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="confirm" class="cols-sm-2 control-label">Korrake parooli</label>
+					<div class="cols-sm-10">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
+								<input type="password" class="form-control" name="confirm" id="confirm" placeholder="Korrake parooli" value.bind="userData.password2"/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group ">
+					<button type="submit" class="btn btn-primary btn-lg btn-block login-button">Registreeru</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	</div>
+	</div>
 </template>

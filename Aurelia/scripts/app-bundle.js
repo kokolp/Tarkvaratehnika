@@ -1,9 +1,10 @@
-define('app',["exports"], function (exports) {
-  "use strict";
+define('app',['exports', 'aurelia-framework', 'aurelia-auth'], function (exports, _aureliaFramework, _aureliaAuth) {
+  'use strict';
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
+  exports.App = undefined;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -11,15 +12,19 @@ define('app',["exports"], function (exports) {
     }
   }
 
-  var App = exports.App = function () {
-    function App() {
+  var _dec, _class;
+
+  var App = exports.App = (_dec = (0, _aureliaFramework.inject)(_aureliaAuth.FetchConfig), _dec(_class = function () {
+    function App(fetchConfig) {
       _classCallCheck(this, App);
 
-      this.message = 'Hello World!';
+      this.fetchConfig = fetchConfig;
     }
 
     App.prototype.configureRouter = function configureRouter(config, router) {
       this.router = router;
+      this.fetchConfig.configure();
+      config.title = 'Rahaplaneerija';
 
       config.map([{
         route: ["", "root"],
@@ -27,20 +32,67 @@ define('app',["exports"], function (exports) {
         title: "Rahaplaneerija",
         nav: true
       }, {
-        route: "login",
-        moduleId: "login",
-        title: "Login",
-        nav: true
-      }, {
         route: "kalkulaator",
         moduleId: "kalkulaator",
-        title: "Eelarvekalkulaator",
+        title: "Eelarve kalkulaator",
+        nav: true
+      }, {
+        route: "login",
+        moduleId: "login",
+        title: "Logi sisse",
         nav: true
       }]);
     };
 
     return App;
-  }();
+  }()) || _class);
+});
+define('authConfig',['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    var configForDevelopment = {
+        providers: {
+            google: {
+                clientId: '239531826023-ibk10mb9p7ull54j55a61og5lvnjrff6.apps.googleusercontent.com'
+            },
+
+            linkedin: {
+                clientId: '778mif8zyqbei7'
+            },
+            facebook: {
+                clientId: '1452782111708498'
+            }
+        },
+        loginUrl: 'http://localhost:8080/login'
+
+    };
+
+    var configForProduction = {
+        providers: {
+            google: {
+                clientId: '239531826023-3ludu3934rmcra3oqscc1gid3l9o497i.apps.googleusercontent.com'
+            },
+
+            linkedin: {
+                clientId: '7561959vdub4x1'
+            },
+            facebook: {
+                clientId: '1653908914832509'
+            }
+
+        }
+    };
+    var config;
+    if (window.location.hostname === 'localhost') {
+        config = configForDevelopment;
+    } else {
+        config = configForProduction;
+    }
+
+    exports.default = config;
 });
 define('environment',["exports"], function (exports) {
   "use strict";
@@ -52,87 +104,6 @@ define('environment',["exports"], function (exports) {
     debug: true,
     testing: true
   };
-});
-define('main',['exports', './environment'], function (exports, _environment) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.configure = configure;
-
-  var _environment2 = _interopRequireDefault(_environment);
-
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
-
-  Promise.config({
-    warnings: {
-      wForgottenReturn: false
-    }
-  });
-
-  function configure(aurelia) {
-    aurelia.use.standardConfiguration().feature('resources');
-
-    if (_environment2.default.debug) {
-      aurelia.use.developmentLogging();
-    }
-
-    if (_environment2.default.testing) {
-      aurelia.use.plugin('aurelia-testing');
-    }
-
-    aurelia.start().then(function () {
-      return aurelia.setRoot();
-    });
-  }
-});
-define('root',["exports"], function (exports) {
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	function _classCallCheck(instance, Constructor) {
-		if (!(instance instanceof Constructor)) {
-			throw new TypeError("Cannot call a class as a function");
-		}
-	}
-
-	var Root = exports.Root = function Root() {
-		_classCallCheck(this, Root);
-	};
-});
-define('resources/index',["exports"], function (exports) {
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.configure = configure;
-  function configure(config) {}
-});
-define('login',["exports"], function (exports) {
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	function _classCallCheck(instance, Constructor) {
-		if (!(instance instanceof Constructor)) {
-			throw new TypeError("Cannot call a class as a function");
-		}
-	}
-
-	var Login = exports.Login = function Login() {
-		_classCallCheck(this, Login);
-	};
 });
 define('kalkulaator',['exports', './line'], function (exports, _line) {
 	'use strict';
@@ -228,19 +199,1461 @@ define('line',["exports"], function (exports) {
 		this.type = type;
 	};
 });
+define('login',['exports', 'aurelia-fetch-client', 'aurelia-framework', 'aurelia-auth'], function (exports, _aureliaFetchClient, _aureliaFramework, _aureliaAuth) {
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.Login = undefined;
+
+	function _classCallCheck(instance, Constructor) {
+		if (!(instance instanceof Constructor)) {
+			throw new TypeError("Cannot call a class as a function");
+		}
+	}
+
+	var _dec, _class;
+
+	var Login = exports.Login = (_dec = (0, _aureliaFramework.inject)(_aureliaAuth.AuthService), _dec(_class = function () {
+		function Login(auth) {
+			_classCallCheck(this, Login);
+
+			this.userData = {};
+			this.error = null;
+
+			this.register = false;
+			this.auth = auth;
+		}
+
+		Login.prototype.toggleRegister = function toggleRegister() {
+			this.register = true;
+		};
+
+		Login.prototype.addUser = function addUser() {
+			if (this.userData.password != this.userData.password2) {
+				this.error = true;
+				return;
+			}
+
+			var client = new _aureliaFetchClient.HttpClient();
+
+			client.fetch('http://localhost:8080/users/add', {
+				'method': 'POST',
+				'body': (0, _aureliaFetchClient.json)(this.userData)
+			}).then(function (response) {
+				return response.json();
+			});
+		};
+
+		Login.prototype.loginUser = function loginUser() {
+			return this.auth.login(this.userData.email, this.userData.password).then(function (response) {
+				return console.log("success logged " + response);
+			}).catch(function (err) {
+				return console.log("login failure");
+			});
+		};
+
+		return Login;
+	}()) || _class);
+});
+define('main',['exports', './environment', './authConfig'], function (exports, _environment, _authConfig) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.configure = configure;
+
+  var _environment2 = _interopRequireDefault(_environment);
+
+  var _authConfig2 = _interopRequireDefault(_authConfig);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  Promise.config({
+    warnings: {
+      wForgottenReturn: false
+    }
+  });
+
+  function configure(aurelia) {
+    aurelia.use.standardConfiguration().feature('resources').plugin('aurelia-auth', function (baseConfig) {
+      baseConfig.configure(_authConfig2.default);
+    });
+
+    if (_environment2.default.debug) {
+      aurelia.use.developmentLogging();
+    }
+
+    if (_environment2.default.testing) {
+      aurelia.use.plugin('aurelia-testing');
+    }
+
+    aurelia.start().then(function () {
+      return aurelia.setRoot();
+    });
+  }
+});
+define('root',["exports"], function (exports) {
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	function _classCallCheck(instance, Constructor) {
+		if (!(instance instanceof Constructor)) {
+			throw new TypeError("Cannot call a class as a function");
+		}
+	}
+
+	var Root = exports.Root = function Root() {
+		_classCallCheck(this, Root);
+	};
+});
+define('resources/index',["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.configure = configure;
+  function configure(config) {}
+});
+define('aurelia-auth/auth-service',['exports', 'aurelia-dependency-injection', 'aurelia-fetch-client', 'aurelia-event-aggregator', './authentication', './base-config', './oAuth1', './oAuth2', './auth-utilities'], function (exports, _aureliaDependencyInjection, _aureliaFetchClient, _aureliaEventAggregator, _authentication, _baseConfig, _oAuth, _oAuth2, _authUtilities) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.AuthService = undefined;
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  };
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var AuthService = exports.AuthService = (_dec = (0, _aureliaDependencyInjection.inject)(_aureliaFetchClient.HttpClient, _authentication.Authentication, _oAuth.OAuth1, _oAuth2.OAuth2, _baseConfig.BaseConfig, _aureliaEventAggregator.EventAggregator), _dec(_class = function () {
+    function AuthService(http, auth, oAuth1, oAuth2, config, eventAggregator) {
+      _classCallCheck(this, AuthService);
+
+      this.http = http;
+      this.auth = auth;
+      this.oAuth1 = oAuth1;
+      this.oAuth2 = oAuth2;
+      this.config = config.current;
+      this.tokenInterceptor = auth.tokenInterceptor;
+      this.eventAggregator = eventAggregator;
+    }
+
+    AuthService.prototype.getMe = function getMe() {
+      var profileUrl = this.auth.getProfileUrl();
+      return this.http.fetch(profileUrl).then(_authUtilities.status);
+    };
+
+    AuthService.prototype.isAuthenticated = function isAuthenticated() {
+      return this.auth.isAuthenticated();
+    };
+
+    AuthService.prototype.getTokenPayload = function getTokenPayload() {
+      return this.auth.getPayload();
+    };
+
+    AuthService.prototype.setToken = function setToken(token) {
+      this.auth.setToken(Object.defineProperty({}, this.config.tokenName, { value: token }));
+    };
+
+    AuthService.prototype.signup = function signup(displayName, email, password) {
+      var _this = this;
+
+      var signupUrl = this.auth.getSignupUrl();
+      var content = void 0;
+      if (_typeof(arguments[0]) === 'object') {
+        content = arguments[0];
+      } else {
+        content = {
+          'displayName': displayName,
+          'email': email,
+          'password': password
+        };
+      }
+
+      return this.http.fetch(signupUrl, {
+        method: 'post',
+        body: (0, _aureliaFetchClient.json)(content)
+      }).then(_authUtilities.status).then(function (response) {
+        if (_this.config.loginOnSignup) {
+          _this.auth.setToken(response);
+        } else if (_this.config.signupRedirect) {
+          window.location.href = _this.config.signupRedirect;
+        }
+        _this.eventAggregator.publish('auth:signup', response);
+        return response;
+      });
+    };
+
+    AuthService.prototype.login = function login(email, password) {
+      var _this2 = this;
+
+      var loginUrl = this.auth.getLoginUrl();
+      var content = void 0;
+      if (typeof arguments[1] !== 'string') {
+        content = arguments[0];
+      } else {
+        content = {
+          'email': email,
+          'password': password
+        };
+      }
+
+      return this.http.fetch(loginUrl, {
+        method: 'post',
+        headers: typeof content === 'string' ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {},
+        body: typeof content === 'string' ? content : (0, _aureliaFetchClient.json)(content)
+      }).then(_authUtilities.status).then(function (response) {
+        _this2.auth.setToken(response);
+        _this2.eventAggregator.publish('auth:login', response);
+        return response;
+      });
+    };
+
+    AuthService.prototype.logout = function logout(redirectUri) {
+      var _this3 = this;
+
+      return this.auth.logout(redirectUri).then(function () {
+        _this3.eventAggregator.publish('auth:logout');
+      });
+    };
+
+    AuthService.prototype.authenticate = function authenticate(name, redirect, userData) {
+      var _this4 = this;
+
+      var provider = this.oAuth2;
+      if (this.config.providers[name].type === '1.0') {
+        provider = this.oAuth1;
+      }
+
+      return provider.open(this.config.providers[name], userData || {}).then(function (response) {
+        _this4.auth.setToken(response, redirect);
+        _this4.eventAggregator.publish('auth:authenticate', response);
+        return response;
+      });
+    };
+
+    AuthService.prototype.unlink = function unlink(provider) {
+      var _this5 = this;
+
+      var unlinkUrl = this.config.baseUrl ? (0, _authUtilities.joinUrl)(this.config.baseUrl, this.config.unlinkUrl) : this.config.unlinkUrl;
+
+      if (this.config.unlinkMethod === 'get') {
+        return this.http.fetch(unlinkUrl + provider).then(_authUtilities.status).then(function (response) {
+          _this5.eventAggregator.publish('auth:unlink', response);
+          return response;
+        });
+      } else if (this.config.unlinkMethod === 'post') {
+        return this.http.fetch(unlinkUrl, {
+          method: 'post',
+          body: (0, _aureliaFetchClient.json)(provider)
+        }).then(_authUtilities.status).then(function (response) {
+          _this5.eventAggregator.publish('auth:unlink', response);
+          return response;
+        });
+      }
+    };
+
+    return AuthService;
+  }()) || _class);
+});
+define('aurelia-auth/authentication',['exports', 'aurelia-dependency-injection', './base-config', './storage', './auth-utilities'], function (exports, _aureliaDependencyInjection, _baseConfig, _storage, _authUtilities) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.Authentication = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  var _dec, _class;
+
+  var Authentication = exports.Authentication = (_dec = (0, _aureliaDependencyInjection.inject)(_storage.Storage, _baseConfig.BaseConfig), _dec(_class = function () {
+    function Authentication(storage, config) {
+      _classCallCheck(this, Authentication);
+
+      this.storage = storage;
+      this.config = config.current;
+      this.tokenName = this.config.tokenPrefix ? this.config.tokenPrefix + '_' + this.config.tokenName : this.config.tokenName;
+      this.idTokenName = this.config.tokenPrefix ? this.config.tokenPrefix + '_' + this.config.idTokenName : this.config.idTokenName;
+    }
+
+    Authentication.prototype.getLoginRoute = function getLoginRoute() {
+      return this.config.loginRoute;
+    };
+
+    Authentication.prototype.getLoginRedirect = function getLoginRedirect() {
+      return this.initialUrl || this.config.loginRedirect;
+    };
+
+    Authentication.prototype.getLoginUrl = function getLoginUrl() {
+      return this.config.baseUrl ? (0, _authUtilities.joinUrl)(this.config.baseUrl, this.config.loginUrl) : this.config.loginUrl;
+    };
+
+    Authentication.prototype.getSignupUrl = function getSignupUrl() {
+      return this.config.baseUrl ? (0, _authUtilities.joinUrl)(this.config.baseUrl, this.config.signupUrl) : this.config.signupUrl;
+    };
+
+    Authentication.prototype.getProfileUrl = function getProfileUrl() {
+      return this.config.baseUrl ? (0, _authUtilities.joinUrl)(this.config.baseUrl, this.config.profileUrl) : this.config.profileUrl;
+    };
+
+    Authentication.prototype.getToken = function getToken() {
+      return this.storage.get(this.tokenName);
+    };
+
+    Authentication.prototype.getPayload = function getPayload() {
+      var token = this.storage.get(this.tokenName);
+      return this.decomposeToken(token);
+    };
+
+    Authentication.prototype.decomposeToken = function decomposeToken(token) {
+      if (token && token.split('.').length === 3) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+        try {
+          return JSON.parse(decodeURIComponent(escape(window.atob(base64))));
+        } catch (error) {
+          return null;
+        }
+      }
+    };
+
+    Authentication.prototype.setInitialUrl = function setInitialUrl(url) {
+      this.initialUrl = url;
+    };
+
+    Authentication.prototype.setToken = function setToken(response, redirect) {
+      var accessToken = response && response[this.config.responseTokenProp];
+      var tokenToStore = void 0;
+
+      if (accessToken) {
+        if ((0, _authUtilities.isObject)(accessToken) && (0, _authUtilities.isObject)(accessToken.data)) {
+          response = accessToken;
+        } else if ((0, _authUtilities.isString)(accessToken)) {
+          tokenToStore = accessToken;
+        }
+      }
+
+      if (!tokenToStore && response) {
+        tokenToStore = this.config.tokenRoot && response[this.config.tokenRoot] ? response[this.config.tokenRoot][this.config.tokenName] : response[this.config.tokenName];
+      }
+
+      if (tokenToStore) {
+        this.storage.set(this.tokenName, tokenToStore);
+      }
+
+      var idToken = response && response[this.config.responseIdTokenProp];
+
+      if (idToken) {
+        this.storage.set(this.idTokenName, idToken);
+      }
+
+      if (this.config.loginRedirect && !redirect) {
+        window.location.href = this.getLoginRedirect();
+      } else if (redirect && (0, _authUtilities.isString)(redirect)) {
+        window.location.href = window.encodeURI(redirect);
+      }
+    };
+
+    Authentication.prototype.removeToken = function removeToken() {
+      this.storage.remove(this.tokenName);
+    };
+
+    Authentication.prototype.isAuthenticated = function isAuthenticated() {
+      var token = this.storage.get(this.tokenName);
+
+      if (!token) {
+        return false;
+      }
+
+      if (token.split('.').length !== 3) {
+        return true;
+      }
+
+      var exp = void 0;
+      try {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        exp = JSON.parse(window.atob(base64)).exp;
+      } catch (error) {
+        return false;
+      }
+
+      if (exp) {
+        return Math.round(new Date().getTime() / 1000) <= exp;
+      }
+
+      return true;
+    };
+
+    Authentication.prototype.logout = function logout(redirect) {
+      var _this = this;
+
+      return new Promise(function (resolve) {
+        _this.storage.remove(_this.tokenName);
+
+        if (_this.config.logoutRedirect && !redirect) {
+          window.location.href = _this.config.logoutRedirect;
+        } else if ((0, _authUtilities.isString)(redirect)) {
+          window.location.href = redirect;
+        }
+
+        resolve();
+      });
+    };
+
+    _createClass(Authentication, [{
+      key: 'tokenInterceptor',
+      get: function get() {
+        var config = this.config;
+        var storage = this.storage;
+        var auth = this;
+        return {
+          request: function request(_request) {
+            if (auth.isAuthenticated() && config.httpInterceptor) {
+              var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
+              var token = storage.get(tokenName);
+
+              if (config.authHeader && config.authToken) {
+                token = config.authToken + ' ' + token;
+              }
+
+              _request.headers.set(config.authHeader, token);
+            }
+            return _request;
+          }
+        };
+      }
+    }]);
+
+    return Authentication;
+  }()) || _class);
+});
+define('aurelia-auth/base-config',['exports', './auth-utilities'], function (exports, _authUtilities) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.BaseConfig = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  var BaseConfig = exports.BaseConfig = function () {
+    BaseConfig.prototype.configure = function configure(incomingConfig) {
+      (0, _authUtilities.merge)(this._current, incomingConfig);
+    };
+
+    _createClass(BaseConfig, [{
+      key: 'current',
+      get: function get() {
+        return this._current;
+      }
+    }]);
+
+    function BaseConfig() {
+      _classCallCheck(this, BaseConfig);
+
+      this._current = {
+        httpInterceptor: true,
+        loginOnSignup: true,
+        baseUrl: '/',
+        loginRedirect: '#/',
+        logoutRedirect: '#/',
+        signupRedirect: '#/login',
+        loginUrl: '/auth/login',
+        signupUrl: '/auth/signup',
+        profileUrl: '/auth/me',
+        loginRoute: '/login',
+        signupRoute: '/signup',
+        tokenRoot: false,
+        tokenName: 'token',
+        idTokenName: 'id_token',
+        tokenPrefix: 'aurelia',
+        responseTokenProp: 'access_token',
+        responseIdTokenProp: 'id_token',
+        unlinkUrl: '/auth/unlink/',
+        unlinkMethod: 'get',
+        authHeader: 'Authorization',
+        authToken: 'Bearer',
+        withCredentials: true,
+        platform: 'browser',
+        storage: 'localStorage',
+        providers: {
+          identSrv: {
+            name: 'identSrv',
+            url: '/auth/identSrv',
+
+            redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
+            scope: ['profile', 'openid'],
+            responseType: 'code',
+            scopePrefix: '',
+            scopeDelimiter: ' ',
+            requiredUrlParams: ['scope', 'nonce'],
+            optionalUrlParams: ['display', 'state'],
+            state: function state() {
+              var rand = Math.random().toString(36).substr(2);
+              return encodeURIComponent(rand);
+            },
+            display: 'popup',
+            type: '2.0',
+            clientId: 'jsClient',
+            nonce: function nonce() {
+              var val = ((Date.now() + Math.random()) * Math.random()).toString().replace('.', '');
+              return encodeURIComponent(val);
+            },
+            popupOptions: { width: 452, height: 633 }
+          },
+          google: {
+            name: 'google',
+            url: '/auth/google',
+            authorizationEndpoint: 'https://accounts.google.com/o/oauth2/auth',
+            redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
+            scope: ['profile', 'email'],
+            scopePrefix: 'openid',
+            scopeDelimiter: ' ',
+            requiredUrlParams: ['scope'],
+            optionalUrlParams: ['display', 'state'],
+            display: 'popup',
+            type: '2.0',
+            state: function state() {
+              var rand = Math.random().toString(36).substr(2);
+              return encodeURIComponent(rand);
+            },
+            popupOptions: {
+              width: 452,
+              height: 633
+            }
+          },
+          facebook: {
+            name: 'facebook',
+            url: '/auth/facebook',
+            authorizationEndpoint: 'https://www.facebook.com/v2.3/dialog/oauth',
+            redirectUri: window.location.origin + '/' || window.location.protocol + '//' + window.location.host + '/',
+            scope: ['email'],
+            scopeDelimiter: ',',
+            nonce: function nonce() {
+              return Math.random();
+            },
+            requiredUrlParams: ['nonce', 'display', 'scope'],
+            display: 'popup',
+            type: '2.0',
+            popupOptions: {
+              width: 580,
+              height: 400
+            }
+          },
+          linkedin: {
+            name: 'linkedin',
+            url: '/auth/linkedin',
+            authorizationEndpoint: 'https://www.linkedin.com/uas/oauth2/authorization',
+            redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
+            requiredUrlParams: ['state'],
+            scope: ['r_emailaddress'],
+            scopeDelimiter: ' ',
+            state: 'STATE',
+            type: '2.0',
+            popupOptions: {
+              width: 527,
+              height: 582
+            }
+          },
+          github: {
+            name: 'github',
+            url: '/auth/github',
+            authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+            redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
+            optionalUrlParams: ['scope'],
+            scope: ['user:email'],
+            scopeDelimiter: ' ',
+            type: '2.0',
+            popupOptions: {
+              width: 1020,
+              height: 618
+            }
+          },
+          yahoo: {
+            name: 'yahoo',
+            url: '/auth/yahoo',
+            authorizationEndpoint: 'https://api.login.yahoo.com/oauth2/request_auth',
+            redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
+            scope: [],
+            scopeDelimiter: ',',
+            type: '2.0',
+            popupOptions: {
+              width: 559,
+              height: 519
+            }
+          },
+          twitter: {
+            name: 'twitter',
+            url: '/auth/twitter',
+            authorizationEndpoint: 'https://api.twitter.com/oauth/authenticate',
+            type: '1.0',
+            popupOptions: {
+              width: 495,
+              height: 645
+            }
+          },
+          live: {
+            name: 'live',
+            url: '/auth/live',
+            authorizationEndpoint: 'https://login.live.com/oauth20_authorize.srf',
+            redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
+            scope: ['wl.emails'],
+            scopeDelimiter: ' ',
+            requiredUrlParams: ['display', 'scope'],
+            display: 'popup',
+            type: '2.0',
+            popupOptions: {
+              width: 500,
+              height: 560
+            }
+          },
+          instagram: {
+            name: 'instagram',
+            url: '/auth/instagram',
+            authorizationEndpoint: 'https://api.instagram.com/oauth/authorize',
+            redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
+            requiredUrlParams: ['scope'],
+            scope: ['basic'],
+            scopeDelimiter: '+',
+            display: 'popup',
+            type: '2.0',
+            popupOptions: {
+              width: 550,
+              height: 369
+            }
+          }
+        }
+      };
+    }
+
+    return BaseConfig;
+  }();
+});
+define('aurelia-auth/auth-utilities',['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.status = status;
+  exports.isDefined = isDefined;
+  exports.camelCase = camelCase;
+  exports.parseQueryString = parseQueryString;
+  exports.isString = isString;
+  exports.isObject = isObject;
+  exports.isFunction = isFunction;
+  exports.joinUrl = joinUrl;
+  exports.isBlankObject = isBlankObject;
+  exports.isArrayLike = isArrayLike;
+  exports.isWindow = isWindow;
+  exports.extend = extend;
+  exports.merge = merge;
+  exports.forEach = forEach;
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  };
+
+  var slice = [].slice;
+
+  function setHashKey(obj, h) {
+    if (h) {
+      obj.$$hashKey = h;
+    } else {
+      delete obj.$$hashKey;
+    }
+  }
+
+  function baseExtend(dst, objs, deep) {
+    var h = dst.$$hashKey;
+
+    for (var i = 0, ii = objs.length; i < ii; ++i) {
+      var obj = objs[i];
+      if (!isObject(obj) && !isFunction(obj)) continue;
+      var keys = Object.keys(obj);
+      for (var j = 0, jj = keys.length; j < jj; j++) {
+        var key = keys[j];
+        var src = obj[key];
+
+        if (deep && isObject(src)) {
+          if (!isObject(dst[key])) dst[key] = Array.isArray(src) ? [] : {};
+          baseExtend(dst[key], [src], true);
+        } else {
+          dst[key] = src;
+        }
+      }
+    }
+
+    setHashKey(dst, h);
+    return dst;
+  }
+
+  function status(response) {
+    if (response.status >= 200 && response.status < 400) {
+      return response.json().catch(function (error) {
+        return null;
+      });
+    }
+
+    throw response;
+  }
+
+  function isDefined(value) {
+    return typeof value !== 'undefined';
+  }
+
+  function camelCase(name) {
+    return name.replace(/([\:\-\_]+(.))/g, function (_, separator, letter, offset) {
+      return offset ? letter.toUpperCase() : letter;
+    });
+  }
+
+  function parseQueryString(keyValue) {
+    var key = void 0;
+    var value = void 0;
+    var obj = {};
+
+    forEach((keyValue || '').split('&'), function (kv) {
+      if (kv) {
+        value = kv.split('=');
+        key = decodeURIComponent(value[0]);
+        obj[key] = isDefined(value[1]) ? decodeURIComponent(value[1]) : true;
+      }
+    });
+
+    return obj;
+  }
+
+  function isString(value) {
+    return typeof value === 'string';
+  }
+
+  function isObject(value) {
+    return value !== null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
+  }
+
+  function isFunction(value) {
+    return typeof value === 'function';
+  }
+
+  function joinUrl(baseUrl, url) {
+    if (/^(?:[a-z]+:)?\/\//i.test(url)) {
+      return url;
+    }
+
+    var joined = [baseUrl, url].join('/');
+    var normalize = function normalize(str) {
+      return str.replace(/[\/]+/g, '/').replace(/\/\?/g, '?').replace(/\/\#/g, '#').replace(/\:\//g, '://');
+    };
+
+    return normalize(joined);
+  }
+
+  function isBlankObject(value) {
+    return value !== null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && !Object.getPrototypeOf(value);
+  }
+
+  function isArrayLike(obj) {
+    if (obj === null || isWindow(obj)) {
+      return false;
+    }
+  }
+
+  function isWindow(obj) {
+    return obj && obj.window === obj;
+  }
+
+  function extend(dst) {
+    return baseExtend(dst, slice.call(arguments, 1), false);
+  }
+
+  function merge(dst) {
+    return baseExtend(dst, slice.call(arguments, 1), true);
+  }
+
+  function forEach(obj, iterator, context) {
+    var key = void 0;
+    var length = void 0;
+    if (obj) {
+      if (isFunction(obj)) {
+        for (key in obj) {
+          if (key !== 'prototype' && key !== 'length' && key !== 'name' && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
+            iterator.call(context, obj[key], key, obj);
+          }
+        }
+      } else if (Array.isArray(obj) || isArrayLike(obj)) {
+        var isPrimitive = (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object';
+        for (key = 0, length = obj.length; key < length; key++) {
+          if (isPrimitive || key in obj) {
+            iterator.call(context, obj[key], key, obj);
+          }
+        }
+      } else if (obj.forEach && obj.forEach !== forEach) {
+        obj.forEach(iterator, context, obj);
+      } else if (isBlankObject(obj)) {
+        for (key in obj) {
+          iterator.call(context, obj[key], key, obj);
+        }
+      } else if (typeof obj.hasOwnProperty === 'function') {
+        for (key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            iterator.call(context, obj[key], key, obj);
+          }
+        }
+      } else {
+        for (key in obj) {
+          if (hasOwnProperty.call(obj, key)) {
+            iterator.call(context, obj[key], key, obj);
+          }
+        }
+      }
+    }
+    return obj;
+  }
+});
+define('aurelia-auth/storage',['exports', 'aurelia-dependency-injection', './base-config'], function (exports, _aureliaDependencyInjection, _baseConfig) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.Storage = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var Storage = exports.Storage = (_dec = (0, _aureliaDependencyInjection.inject)(_baseConfig.BaseConfig), _dec(_class = function () {
+    function Storage(config) {
+      _classCallCheck(this, Storage);
+
+      this.config = config.current;
+      this.storage = this._getStorage(this.config.storage);
+    }
+
+    Storage.prototype.get = function get(key) {
+      return this.storage.getItem(key);
+    };
+
+    Storage.prototype.set = function set(key, value) {
+      return this.storage.setItem(key, value);
+    };
+
+    Storage.prototype.remove = function remove(key) {
+      return this.storage.removeItem(key);
+    };
+
+    Storage.prototype._getStorage = function _getStorage(type) {
+      if (type === 'localStorage') {
+        if ('localStorage' in window && window.localStorage !== null) return localStorage;
+        throw new Error('Local Storage is disabled or unavailable.');
+      } else if (type === 'sessionStorage') {
+        if ('sessionStorage' in window && window.sessionStorage !== null) return sessionStorage;
+        throw new Error('Session Storage is disabled or unavailable.');
+      }
+
+      throw new Error('Invalid storage type specified: ' + type);
+    };
+
+    return Storage;
+  }()) || _class);
+});
+define('aurelia-auth/oAuth1',['exports', 'aurelia-dependency-injection', './auth-utilities', './storage', './popup', './base-config', 'aurelia-fetch-client'], function (exports, _aureliaDependencyInjection, _authUtilities, _storage, _popup, _baseConfig, _aureliaFetchClient) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.OAuth1 = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var OAuth1 = exports.OAuth1 = (_dec = (0, _aureliaDependencyInjection.inject)(_storage.Storage, _popup.Popup, _aureliaFetchClient.HttpClient, _baseConfig.BaseConfig), _dec(_class = function () {
+    function OAuth1(storage, popup, http, config) {
+      _classCallCheck(this, OAuth1);
+
+      this.storage = storage;
+      this.config = config.current;
+      this.popup = popup;
+      this.http = http;
+      this.defaults = {
+        url: null,
+        name: null,
+        popupOptions: null,
+        redirectUri: null,
+        authorizationEndpoint: null
+      };
+    }
+
+    OAuth1.prototype.open = function open(options, userData) {
+      var _this = this;
+
+      var current = (0, _authUtilities.extend)({}, this.defaults, options);
+      var serverUrl = this.config.baseUrl ? (0, _authUtilities.joinUrl)(this.config.baseUrl, current.url) : current.url;
+
+      if (this.config.platform !== 'mobile') {
+        this.popup = this.popup.open('', current.name, current.popupOptions, current.redirectUri);
+      }
+      return this.http.fetch(serverUrl, {
+        method: 'post'
+      }).then(_authUtilities.status).then(function (response) {
+        if (_this.config.platform === 'mobile') {
+          _this.popup = _this.popup.open([current.authorizationEndpoint, _this.buildQueryString(response)].join('?'), current.name, current.popupOptions, current.redirectUri);
+        } else {
+          _this.popup.popupWindow.location = [current.authorizationEndpoint, _this.buildQueryString(response)].join('?');
+        }
+
+        var popupListener = _this.config.platform === 'mobile' ? _this.popup.eventListener(current.redirectUri) : _this.popup.pollPopup();
+        return popupListener.then(function (result) {
+          return _this.exchangeForToken(result, userData, current);
+        });
+      });
+    };
+
+    OAuth1.prototype.exchangeForToken = function exchangeForToken(oauthData, userData, current) {
+      var data = (0, _authUtilities.extend)({}, userData, oauthData);
+      var exchangeForTokenUrl = this.config.baseUrl ? (0, _authUtilities.joinUrl)(this.config.baseUrl, current.url) : current.url;
+      var credentials = this.config.withCredentials ? 'include' : 'same-origin';
+
+      return this.http.fetch(exchangeForTokenUrl, {
+        method: 'post',
+        body: (0, _aureliaFetchClient.json)(data),
+        credentials: credentials
+      }).then(_authUtilities.status);
+    };
+
+    OAuth1.prototype.buildQueryString = function buildQueryString(obj) {
+      var str = [];
+      (0, _authUtilities.forEach)(obj, function (value, key) {
+        return str.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+      });
+      return str.join('&');
+    };
+
+    return OAuth1;
+  }()) || _class);
+});
+define('aurelia-auth/popup',['exports', './auth-utilities', './base-config', 'aurelia-dependency-injection'], function (exports, _authUtilities, _baseConfig, _aureliaDependencyInjection) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.Popup = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var Popup = exports.Popup = (_dec = (0, _aureliaDependencyInjection.inject)(_baseConfig.BaseConfig), _dec(_class = function () {
+    function Popup(config) {
+      _classCallCheck(this, Popup);
+
+      this.config = config.current;
+      this.popupWindow = null;
+      this.polling = null;
+      this.url = '';
+    }
+
+    Popup.prototype.open = function open(url, windowName, options, redirectUri) {
+      this.url = url;
+      var optionsString = this.stringifyOptions(this.prepareOptions(options || {}));
+      this.popupWindow = window.open(url, windowName, optionsString);
+      if (this.popupWindow && this.popupWindow.focus) {
+        this.popupWindow.focus();
+      }
+
+      return this;
+    };
+
+    Popup.prototype.eventListener = function eventListener(redirectUri) {
+      var self = this;
+      var promise = new Promise(function (resolve, reject) {
+        self.popupWindow.addEventListener('loadstart', function (event) {
+          if (event.url.indexOf(redirectUri) !== 0) {
+            return;
+          }
+
+          var parser = document.createElement('a');
+          parser.href = event.url;
+
+          if (parser.search || parser.hash) {
+            var queryParams = parser.search.substring(1).replace(/\/$/, '');
+            var hashParams = parser.hash.substring(1).replace(/\/$/, '');
+            var hash = (0, _authUtilities.parseQueryString)(hashParams);
+            var qs = (0, _authUtilities.parseQueryString)(queryParams);
+
+            (0, _authUtilities.extend)(qs, hash);
+
+            if (qs.error) {
+              reject({
+                error: qs.error
+              });
+            } else {
+              resolve(qs);
+            }
+
+            self.popupWindow.close();
+          }
+        });
+
+        popupWindow.addEventListener('exit', function () {
+          reject({
+            data: 'Provider Popup was closed'
+          });
+        });
+
+        popupWindow.addEventListener('loaderror', function () {
+          deferred.reject({
+            data: 'Authorization Failed'
+          });
+        });
+      });
+      return promise;
+    };
+
+    Popup.prototype.pollPopup = function pollPopup() {
+      var _this = this;
+
+      var self = this;
+      var promise = new Promise(function (resolve, reject) {
+        _this.polling = setInterval(function () {
+          try {
+            var documentOrigin = document.location.host;
+            var popupWindowOrigin = self.popupWindow.location.host;
+
+            if (popupWindowOrigin === documentOrigin && (self.popupWindow.location.search || self.popupWindow.location.hash)) {
+              var queryParams = self.popupWindow.location.search.substring(1).replace(/\/$/, '');
+              var hashParams = self.popupWindow.location.hash.substring(1).replace(/[\/$]/, '');
+              var hash = (0, _authUtilities.parseQueryString)(hashParams);
+              var qs = (0, _authUtilities.parseQueryString)(queryParams);
+
+              (0, _authUtilities.extend)(qs, hash);
+
+              if (qs.error) {
+                reject({
+                  error: qs.error
+                });
+              } else {
+                resolve(qs);
+              }
+
+              self.popupWindow.close();
+              clearInterval(self.polling);
+            }
+          } catch (error) {}
+
+          if (!self.popupWindow) {
+            clearInterval(self.polling);
+            reject({
+              data: 'Provider Popup Blocked'
+            });
+          } else if (self.popupWindow.closed) {
+            clearInterval(self.polling);
+            reject({
+              data: 'Problem poll popup'
+            });
+          }
+        }, 35);
+      });
+      return promise;
+    };
+
+    Popup.prototype.prepareOptions = function prepareOptions(options) {
+      var width = options.width || 500;
+      var height = options.height || 500;
+      return (0, _authUtilities.extend)({
+        width: width,
+        height: height,
+        left: window.screenX + (window.outerWidth - width) / 2,
+        top: window.screenY + (window.outerHeight - height) / 2.5
+      }, options);
+    };
+
+    Popup.prototype.stringifyOptions = function stringifyOptions(options) {
+      var parts = [];
+      (0, _authUtilities.forEach)(options, function (value, key) {
+        parts.push(key + '=' + value);
+      });
+      return parts.join(',');
+    };
+
+    return Popup;
+  }()) || _class);
+});
+define('aurelia-auth/oAuth2',['exports', 'aurelia-dependency-injection', './auth-utilities', './storage', './popup', './base-config', './authentication', 'aurelia-fetch-client'], function (exports, _aureliaDependencyInjection, _authUtilities, _storage, _popup, _baseConfig, _authentication, _aureliaFetchClient) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.OAuth2 = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var OAuth2 = exports.OAuth2 = (_dec = (0, _aureliaDependencyInjection.inject)(_storage.Storage, _popup.Popup, _aureliaFetchClient.HttpClient, _baseConfig.BaseConfig, _authentication.Authentication), _dec(_class = function () {
+    function OAuth2(storage, popup, http, config, auth) {
+      _classCallCheck(this, OAuth2);
+
+      this.storage = storage;
+      this.config = config.current;
+      this.popup = popup;
+      this.http = http;
+      this.auth = auth;
+      this.defaults = {
+        url: null,
+        name: null,
+        state: null,
+        scope: null,
+        scopeDelimiter: null,
+        redirectUri: null,
+        popupOptions: null,
+        authorizationEndpoint: null,
+        responseParams: null,
+        requiredUrlParams: null,
+        optionalUrlParams: null,
+        defaultUrlParams: ['response_type', 'client_id', 'redirect_uri'],
+        responseType: 'code'
+      };
+    }
+
+    OAuth2.prototype.open = function open(options, userData) {
+      var _this = this;
+
+      var current = (0, _authUtilities.extend)({}, this.defaults, options);
+
+      var stateName = current.name + '_state';
+
+      if ((0, _authUtilities.isFunction)(current.state)) {
+        this.storage.set(stateName, current.state());
+      } else if ((0, _authUtilities.isString)(current.state)) {
+        this.storage.set(stateName, current.state);
+      }
+
+      var nonceName = current.name + '_nonce';
+
+      if ((0, _authUtilities.isFunction)(current.nonce)) {
+        this.storage.set(nonceName, current.nonce());
+      } else if ((0, _authUtilities.isString)(current.nonce)) {
+        this.storage.set(nonceName, current.nonce);
+      }
+
+      var url = current.authorizationEndpoint + '?' + this.buildQueryString(current);
+
+      var openPopup = void 0;
+      if (this.config.platform === 'mobile') {
+        openPopup = this.popup.open(url, current.name, current.popupOptions, current.redirectUri).eventListener(current.redirectUri);
+      } else {
+        openPopup = this.popup.open(url, current.name, current.popupOptions, current.redirectUri).pollPopup();
+      }
+
+      return openPopup.then(function (oauthData) {
+        if (oauthData.state && oauthData.state !== _this.storage.get(stateName)) {
+          return Promise.reject('OAuth 2.0 state parameter mismatch.');
+        }
+
+        if (current.responseType.toUpperCase().indexOf('TOKEN') !== -1) {
+          if (!_this.verifyIdToken(oauthData, current.name)) {
+            return Promise.reject('OAuth 2.0 Nonce parameter mismatch.');
+          }
+
+          return oauthData;
+        }
+
+        return _this.exchangeForToken(oauthData, userData, current);
+      });
+    };
+
+    OAuth2.prototype.verifyIdToken = function verifyIdToken(oauthData, providerName) {
+      var idToken = oauthData && oauthData[this.config.responseIdTokenProp];
+      if (!idToken) return true;
+      var idTokenObject = this.auth.decomposeToken(idToken);
+      if (!idTokenObject) return true;
+      var nonceFromToken = idTokenObject.nonce;
+      if (!nonceFromToken) return true;
+      var nonceInStorage = this.storage.get(providerName + '_nonce');
+      if (nonceFromToken !== nonceInStorage) {
+        return false;
+      }
+      return true;
+    };
+
+    OAuth2.prototype.exchangeForToken = function exchangeForToken(oauthData, userData, current) {
+      var data = (0, _authUtilities.extend)({}, userData, {
+        code: oauthData.code,
+        clientId: current.clientId,
+        redirectUri: current.redirectUri
+      });
+
+      if (oauthData.state) {
+        data.state = oauthData.state;
+      }
+
+      (0, _authUtilities.forEach)(current.responseParams, function (param) {
+        return data[param] = oauthData[param];
+      });
+
+      var exchangeForTokenUrl = this.config.baseUrl ? (0, _authUtilities.joinUrl)(this.config.baseUrl, current.url) : current.url;
+      var credentials = this.config.withCredentials ? 'include' : 'same-origin';
+
+      return this.http.fetch(exchangeForTokenUrl, {
+        method: 'post',
+        body: (0, _aureliaFetchClient.json)(data),
+        credentials: credentials
+      }).then(_authUtilities.status);
+    };
+
+    OAuth2.prototype.buildQueryString = function buildQueryString(current) {
+      var _this2 = this;
+
+      var keyValuePairs = [];
+      var urlParams = ['defaultUrlParams', 'requiredUrlParams', 'optionalUrlParams'];
+
+      (0, _authUtilities.forEach)(urlParams, function (params) {
+        (0, _authUtilities.forEach)(current[params], function (paramName) {
+          var camelizedName = (0, _authUtilities.camelCase)(paramName);
+          var paramValue = (0, _authUtilities.isFunction)(current[paramName]) ? current[paramName]() : current[camelizedName];
+
+          if (paramName === 'state') {
+            var stateName = current.name + '_state';
+            paramValue = encodeURIComponent(_this2.storage.get(stateName));
+          }
+
+          if (paramName === 'nonce') {
+            var nonceName = current.name + '_nonce';
+            paramValue = encodeURIComponent(_this2.storage.get(nonceName));
+          }
+
+          if (paramName === 'scope' && Array.isArray(paramValue)) {
+            paramValue = paramValue.join(current.scopeDelimiter);
+
+            if (current.scopePrefix) {
+              paramValue = [current.scopePrefix, paramValue].join(current.scopeDelimiter);
+            }
+          }
+
+          keyValuePairs.push([paramName, paramValue]);
+        });
+      });
+
+      return keyValuePairs.map(function (pair) {
+        return pair.join('=');
+      }).join('&');
+    };
+
+    return OAuth2;
+  }()) || _class);
+});
+define('aurelia-auth/authorize-step',['exports', 'aurelia-dependency-injection', 'aurelia-router', './authentication'], function (exports, _aureliaDependencyInjection, _aureliaRouter, _authentication) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.AuthorizeStep = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var AuthorizeStep = exports.AuthorizeStep = (_dec = (0, _aureliaDependencyInjection.inject)(_authentication.Authentication), _dec(_class = function () {
+    function AuthorizeStep(auth) {
+      _classCallCheck(this, AuthorizeStep);
+
+      this.auth = auth;
+    }
+
+    AuthorizeStep.prototype.run = function run(routingContext, next) {
+      var isLoggedIn = this.auth.isAuthenticated();
+      var loginRoute = this.auth.getLoginRoute();
+
+      if (routingContext.getAllInstructions().some(function (i) {
+        return i.config.auth;
+      })) {
+        if (!isLoggedIn) {
+          this.auth.setInitialUrl(window.location.href);
+          return next.cancel(new _aureliaRouter.Redirect(loginRoute));
+        }
+      } else if (isLoggedIn && routingContext.getAllInstructions().some(function (i) {
+        return i.fragment === loginRoute;
+      })) {
+        var loginRedirect = this.auth.getLoginRedirect();
+        return next.cancel(new _aureliaRouter.Redirect(loginRedirect));
+      }
+
+      return next();
+    };
+
+    return AuthorizeStep;
+  }()) || _class);
+});
+define('aurelia-auth/auth-fetch-config',['exports', 'aurelia-dependency-injection', 'aurelia-fetch-client', './authentication'], function (exports, _aureliaDependencyInjection, _aureliaFetchClient, _authentication) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.FetchConfig = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var FetchConfig = exports.FetchConfig = (_dec = (0, _aureliaDependencyInjection.inject)(_aureliaFetchClient.HttpClient, _authentication.Authentication), _dec(_class = function () {
+    function FetchConfig(httpClient, authService) {
+      _classCallCheck(this, FetchConfig);
+
+      this.httpClient = httpClient;
+      this.auth = authService;
+    }
+
+    FetchConfig.prototype.configure = function configure() {
+      var _this = this;
+
+      this.httpClient.configure(function (httpConfig) {
+        httpConfig.withDefaults({
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }).withInterceptor(_this.auth.tokenInterceptor);
+      });
+    };
+
+    return FetchConfig;
+  }()) || _class);
+});
+define('aurelia-auth/auth-filter',["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var AuthFilterValueConverter = exports.AuthFilterValueConverter = function () {
+    function AuthFilterValueConverter() {
+      _classCallCheck(this, AuthFilterValueConverter);
+    }
+
+    AuthFilterValueConverter.prototype.toView = function toView(routes, isAuthenticated) {
+      return routes.filter(function (r) {
+        return r.config.auth === undefined || r.config.auth === isAuthenticated;
+      });
+    };
+
+    return AuthFilterValueConverter;
+  }();
+});
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <nav class=\"navbar navbar-default\">\n    <ul class=\"nav navbar-nav\">\n      <li class=\"${row.active ? 'active' : ''}\" repeat.for=\"row of router.navigation\">\n        <a href.bind=\"row.href\">${row.title}</a>\n      </li>\n    </ul>\n  </nav>\n   <div class=\"container\">\n   <router-view></router-view>\n   \t</div>\n    <hr />\n   \t<footer>\n   \t<div class=\"copyright\">\n\t    <p>&copy; Rahaplaneerija 2017. All rights reserved.</p>\n\t</div>\n   \t</footer>\n</template>\n"; });
-define('text!css/ie8.css', ['module'], function(module) { module.exports = "/*\r\n\tHelios 1.0 by HTML5 UP\r\n\thtml5up.net | @n33co\r\n\tFree for personal and commercial use under the CCA 3.0 license (html5up.net/license)\r\n*/\r\n\r\n/*********************************************************************************/\r\n/* Basic                                                                         */\r\n/*********************************************************************************/\r\n\r\n\ta\r\n\t{\r\n\t\tborder-bottom: solid 1px #ddd;\r\n\t}\r\n\t\r\n\thr\r\n\t{\r\n\t\tborder-top: solid 1px #777;\r\n\t\tborder-bottom: solid 1px #777;\r\n\t}\r\n\r\n\t.timestamp\r\n\t{\r\n\t\tcolor: #777;\r\n\t}\r\n\r\n\t/* Lists */\r\n\r\n\t\tul.divided\r\n\t\t{\r\n\t\t}\r\n\t\t\r\n\t\t\tul.divided li\r\n\t\t\t{\r\n\t\t\t\tborder-top: solid 1px #777;\r\n\t\t\t}\r\n\r\n\t\tul.menu\r\n\t\t{\r\n\t\t}\r\n\t\t\r\n\t\t\tul.menu li\r\n\t\t\t{\r\n\t\t\t\tborder-left: solid 1px #777;\r\n\t\t\t}\r\n\r\n\t\tul.icons\r\n\t\t{\r\n\t\t\tbackground: #333;\r\n\t\t\t-ms-behavior: url('/css/PIE.htc');\r\n\t\t}\r\n\r\n\t/* Buttons */\r\n\t\t\r\n\t\t.button\r\n\t\t{\r\n\t\t\t-ms-behavior: url('/css/PIE.htc');\r\n\t\t}\r\n\r\n/*********************************************************************************/\r\n/* Icons                                                                         */\r\n/* Powered by Font Awesome by Dave Gandy | http://fontawesome.io                 */\r\n/* Licensed under the SIL OFL 1.1 (font), MIT (CSS)                              */\r\n/*********************************************************************************/\r\n\r\n\t.icon\r\n\t{\r\n\t}\r\n\r\n\t\t.icon.circled\r\n\t\t{\r\n\t\t\t-ms-behavior: url('/css/PIE.htc');\r\n\t\t}\r\n\r\n/*********************************************************************************/\r\n/* Header                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#header\r\n\t{\r\n\t\t-ms-behavior: url('/css/backgroundsize.min.htc');\r\n\t}\r\n\r\n/*********************************************************************************/\r\n/* Nav                                                                           */\r\n/*********************************************************************************/\r\n\r\n\t#nav\r\n\t{\r\n\t}\r\n\t\r\n\t\t#nav > ul\r\n\t\t{\r\n\t\t}\r\n\t\t\r\n\t\t\t#nav > ul:before,\r\n\t\t\t#nav > ul:after\r\n\t\t\t{\r\n\t\t\t\tborder-top: solid 1px #777;\r\n\t\t\t\tborder-bottom: solid 1px #777;\r\n\t\t\t}\r\n\r\n\t\t\t#nav > ul > li\r\n\t\t\t{\r\n\t\t\t\t-ms-behavior: url('/css/PIE.htc');\r\n\t\t\t}\r\n\r\n\t\t\t\t#nav > ul > li.active\r\n\t\t\t\t{\r\n\t\t\t\t\tborder-color: #999;\r\n\t\t\t\t}\r\n\r\n\t.dropotron\r\n\t{\r\n\t\tbackground: #fff;\r\n\t\t-ms-behavior: url('/css/PIE.htc');\r\n\t}\r\n\r\n\t\t.dropotron li\r\n\t\t{\r\n\t\t\tborder-color: #eee;\r\n\t\t\tpadding-right: 1em;\r\n\t\t\tcolor: #5b5b5b;\r\n\t\t}\r\n\r\n\t\t.dropotron-level-0\r\n\t\t{\r\n\t\t\tmargin-top: 1em;\r\n\t\t}\r\n\t\r\n/*********************************************************************************/\r\n/* Carousel                                                                      */\r\n/*********************************************************************************/\r\n\r\n\t.carousel\r\n\t{\r\n\t}\r\n\r\n\t\t.carousel .forward,\r\n\t\t.carousel .backward\r\n\t\t{\r\n\t\t\tborder-radius: 100%;\r\n\t\t\tbackground-color: #483949;\r\n\t\t\twidth: 7em;\r\n\t\t\theight: 7em;\r\n\t\t\tmargin-top: -3.5em;\r\n\t\t\tborder-radius: 100%;\r\n\t\t\t-ms-behavior: url('/css/PIE.htc');\r\n\t\t}\r\n\r\n\t\t\t.carousel .forward\r\n\t\t\t{\r\n\t\t\t\tright: -3.5em;\r\n\t\t\t}\r\n\r\n\t\t\t.carousel .backward\r\n\t\t\t{\r\n\t\t\t\tleft: -3.5em;\r\n\t\t\t}\r\n\t\t\r\n\t\t\t.carousel .forward:before,\r\n\t\t\t.carousel .backward:before\r\n\t\t\t{\r\n\t\t\t\tdisplay: none;\r\n\t\t\t}\r\n\t\t\t\r\n/*********************************************************************************/\r\n/* Footer                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#footer\r\n\t{\r\n\t}\r\n\t\r\n\t\t#footer ul.divided li,\r\n\t\t#footer ul.menu li,\r\n\t\t#footer hr\r\n\t\t{\r\n\t\t\tborder-color: #3B373C;\r\n\t\t}\r\n\t\r\n\t\t#footer .icons\r\n\t\t{\r\n\t\t\tbackground: #2F2930;\r\n\t\t}\r\n\t\r\n\t\t#footer .copyright\r\n\t\t{\r\n\t\t\tcolor: #777;\r\n\t\t}\r\n\r\n\t\t\t#footer .copyright a\r\n\t\t\t{\r\n\t\t\t\tcolor: #aaa;\r\n\t\t\t\tborder: 0;\r\n\t\t\t}\r\n\r\n\t\t\t\t#footer .copyright a:hover\r\n\t\t\t\t{\r\n\t\t\t\t\tcolor: #ccc;\r\n\t\t\t\t}"; });
-define('text!root.html', ['module'], function(module) { module.exports = "<template>\n<div id=\"banner\">\n  <h2>Tere! Oled Rahaplaneerija kodulehel!</h2>\n  <span class=\"byline\"> Aitame Sul säästa! </span> </div>\n\n<div class=\"wrapper style\">\n  <article id=\"main\" class=\"container special\"> <a href=\"#\" class=\"image featured\"><img src=\"images/pic06.jpg\" alt=\"\"></a>\n    <header>\n      <h2><a href=\"#\">Siia tuleb väike tutvustus kalkuka kohta</a></h2>\n      <span class=\"byline\">Lisame ka pildi, aga seda saame siis teha, kui asi on reaalselt valmis.</p>\n    <footer> <a href=\"eelarvekalkulaator.html\" class=\"button\">Ava kalkulaator</a> </footer>\n    </header>\n  </article>\n</div>\n</template>"; });
-define('text!css/skel-noscript.css', ['module'], function(module) { module.exports = "/* skelJS v0.3.10 | (c) n33 | skeljs.org | MIT licensed */\n\n/* Resets (http://meyerweb.com/eric/tools/css/reset/ | v2.0 | 20110126 | License: none (public domain)) */\n\n\thtml,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline;}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block;}body{line-height:1;}ol,ul{list-style:none;}blockquote,q{quotes:none;}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none;}table{border-collapse:collapse;border-spacing:0;}body{-webkit-text-size-adjust:none}\n\n/* Box Model */\n\n\t*, *:before, *:after {\n\t\t-moz-box-sizing: border-box;\n\t\t-webkit-box-sizing: border-box;\n\t\t-o-box-sizing: border-box;\n\t\t-ms-box-sizing: border-box;\n\t\tbox-sizing: border-box;\n\t}\n\n/* Container */\n\n\t.container {\n\t\twidth: 1200px;\n\t\tmargin: 0 auto;\n\t}\n\n/* Grid */\n\n\t/* Cells */\n\n\t\t.\\31 2u { width: 100% }\n\t\t.\\31 1u { width: 91.6666666667% }\n\t\t.\\31 0u { width: 83.3333333333% }\n\t\t.\\39 u { width: 75% }\n\t\t.\\38 u { width: 66.6666666667% }\n\t\t.\\37 u { width: 58.3333333333% }\n\t\t.\\36 u { width: 50% }\n\t\t.\\35 u { width: 41.6666666667% }\n\t\t.\\34 u { width: 33.3333333333% }\n\t\t.\\33 u { width: 25% }\n\t\t.\\32 u { width: 16.6666666667% }\n\t\t.\\31 u { width: 8.3333333333% }\n\t\t.\\-11u { margin-left: 91.6666666667% }\n\t\t.\\-10u { margin-left: 83.3333333333% }\n\t\t.\\-9u { margin-left: 75% }\n\t\t.\\-8u { margin-left: 66.6666666667% }\n\t\t.\\-7u { margin-left: 58.3333333333% }\n\t\t.\\-6u { margin-left: 50% }\n\t\t.\\-5u { margin-left: 41.6666666667% }\n\t\t.\\-4u { margin-left: 33.3333333333% }\n\t\t.\\-3u { margin-left: 25% }\n\t\t.\\-2u { margin-left: 16.6666666667% }\n\t\t.\\-1u { margin-left: 8.3333333333% }\n\n\t\t.row > * {\n\t\t\t/* padding: (gutters) 0 0 (gutters); */\n\t\t\tpadding: 48px 0 0 48px;\n\t\t\tfloat: left;\n\t\t\t-moz-box-sizing: border-box;\n\t\t\t-webkit-box-sizing: border-box;\n\t\t\t-o-box-sizing: border-box;\n\t\t\t-ms-box-sizing: border-box;\n\t\t\tbox-sizing: border-box;\n\t\t}\n\n\t\t.row + .row > * {\n\t\t\t/* padding-top: (gutters) */\n\t\t\tpadding-top: 48px;\n\t\t}\n\n\t\t.row {\n\t\t\t/* margin-left: (gutters) */\n\t\t\tmargin-left: -48px;\n\t\t}\n\n\t/* Rows */\n\n\t\t.row:after {\n\t\t\tcontent: '';\n\t\t\tdisplay: block;\n\t\t\tclear: both;\n\t\t\theight: 0;\n\t\t}\n\n\t\t.row:first-child > * {\n\t\t\tpadding-top: 0;\n\t\t}\n\n\t\t.row > * {\n\t\t\tpadding-top: 0;\n\t\t}\n\n\t/* Modifiers */\n\n\t\t/* No Collapse */\n\n\t\t\t.no-collapse { }\n\n\t\t/* Flush */\n\n\t\t\t.row.flush {\n\t\t\t\tmargin-left: 0;\n\t\t\t}\n\n\t\t\t.row.flush > * {\n\t\t\t\tpadding: 0 !important;\n\t\t\t}\n\n\t\t/* Quarter */\n\n\t\t\t.row.quarter > * {\n\t\t\t\t/* padding: (gutters / 4) 0 0 (gutters / 4) */\n\t\t\t\tpadding: 12px 0 0 12px;\n\t\t\t}\n\n\t\t\t.row.quarter + .row.quarter > * {\n\t\t\t\t/* padding-top: (gutters / 4) */\n\t\t\t\tpadding-top: 12px;\n\t\t\t}\n\n\t\t\t.row.quarter {\n\t\t\t\t/* margin-left: -(gutters / 4) */\n\t\t\t\tmargin-left: -12px;\n\t\t\t}\n\n\t\t/* Half */\n\n\t\t\t.row.half > * {\n\t\t\t\t/* padding: (gutters / 2) 0 0 (gutters / 2) */\n\t\t\t\tpadding: 24px 0 0 24px;\n\t\t\t}\n\n\t\t\t.row.half + .row.half > * {\n\t\t\t\t/* padding-top: (gutters / 2) */\n\t\t\t\tpadding-top: 24px;\n\t\t\t}\n\n\t\t\t.row.half {\n\t\t\t\t/* margin-left: -(gutters / 2) */\n\t\t\t\tmargin-left: -24px;\n\t\t\t}\n\n\t\t/* One and (a) Half */\n\n\t\t\t.row.oneandhalf > * {\n\t\t\t\t/* padding: (gutters * 1.5) 0 0 (gutters * 1.5) */\n\t\t\t\tpadding: 72px 0 0 72px;\n\t\t\t}\n\n\t\t\t.row.oneandhalf + .row.oneandhalf > * {\n\t\t\t\t/* padding-top: (gutters * 1.5) */\n\t\t\t\tpadding-top: 72px;\n\t\t\t}\n\n\t\t\t.row.oneandhalf {\n\t\t\t\t/* margin-left: -(gutters * 1.5) */\n\t\t\t\tmargin-left: -72px;\n\t\t\t}\n\n\t\t/* Double */\n\n\t\t\t.row.double > * {\n\t\t\t\t/* padding: (gutters * 2) 0 0 (gutters * 2) */\n\t\t\t\tpadding: 96px 0 0 96px;\n\t\t\t}\n\n\t\t\t.row.double + .row.double > * {\n\t\t\t\t/* padding-top: (gutters * 2) */\n\t\t\t\tpadding-top: 96px;\n\t\t\t}\n\n\t\t\t.row.double {\n\t\t\t\t/* margin-left: -(gutters * 2) */\n\t\t\t\tmargin-left: -96px;\n\t\t\t}"; });
-define('text!css/style-mobile.css', ['module'], function(module) { module.exports = "/*\r\n\tHelios 1.0 by HTML5 UP\r\n\thtml5up.net | @n33co\r\n\tFree for personal and commercial use under the CCA 3.0 license (html5up.net/license)\r\n*/\r\n\r\n/*********************************************************************************/\r\n/* Basic                                                                         */\r\n/*********************************************************************************/\r\n\r\n\tbody,input,textarea,select\r\n\t{\r\n\t\tfont-size: 12.5pt;\r\n\t\tline-height: 1.5em;\r\n\t}\r\n\r\n\th2\r\n\t{\r\n\t\tfont-size: 1.75em;\r\n\t}\r\n\t\r\n\th3\r\n\t{\r\n\t\tfont-size: 1.25em;\r\n\t}\r\n\t\r\n\t.byline\r\n\t{\r\n\t\tfont-size: 1.25em;\r\n\t}\r\n\r\n\tul.icons\r\n\t{\r\n\t\tfont-size: 1em;\r\n\t\tpadding: 0.35em 0.5em 0.35em 0.5em;\r\n\t}\r\n\r\n\t\tul.icons li\r\n\t\t{\r\n\t\t}\r\n\r\n\t\t\tul.icons li a\r\n\t\t\t{\r\n\t\t\t\twidth: 2.25em;\r\n\t\t\t}\r\n\r\n\thr\r\n\t{\r\n\t\ttop: 3em;\r\n\t\tmargin-bottom: 6em;\r\n\t}\r\n\r\n\tsection,\r\n\tarticle,\r\n\t.row > section,\r\n\t.row > article\r\n\t{\r\n\t\tmargin-bottom: 2em;\r\n\t}\r\n\t\r\n\tsection:last-child,\r\n\tarticle:last-child\r\n\t{\r\n\t\tmargin-bottom: 0;\r\n\t}\r\n\r\n\t/* Images */\r\n\r\n\t\t.image\r\n\t\t{\r\n\t\t}\r\n\r\n\t\t\t.image.featured\r\n\t\t\t{\r\n\t\t\t\tmargin: 0 0 2em 0;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t.image.left\r\n\t\t\t{\r\n\t\t\t\tmargin: 0 1em 1em 0;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t.image.centered\r\n\t\t\t{\r\n\t\t\t\tmargin: 0 0 1em 0;\r\n\t\t\t}\r\n\r\n\t/* Lists */\r\n\r\n\t\tul.menu\r\n\t\t{\r\n\t\t\theight: auto;\r\n\t\t\ttext-align: center;\r\n\t\t}\r\n\t\t\r\n\t\t\tul.menu li\r\n\t\t\t{\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\tborder: 0;\r\n\t\t\t\tpadding: 0.75em 0 0 0;\r\n\t\t\t\tmargin: 0;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\tul.menu li:first-child\r\n\t\t\t{\r\n\t\t\t\tpadding-top: 0;\r\n\t\t\t}\r\n\r\n/*********************************************************************************/\r\n/* UI                                                                            */\r\n/*********************************************************************************/\r\n\r\n\t#navButton\r\n\t{\r\n\t}\r\n\r\n\t\t#navButton .toggle\r\n\t\t{\r\n\t\t\tposition: absolute;\r\n\t\t\tleft: 0;\r\n\t\t\ttop: 0;\r\n\t\t\twidth: 100%;\r\n\t\t\theight: 100%;\r\n\t\t}\r\n\t\t\r\n\t\t\t#navButton .toggle:before\r\n\t\t\t{\r\n\t\t\t\tcontent: '';\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\twidth: 80px;\r\n\t\t\t\theight: 30px;\r\n\t\t\t\tposition: absolute;\r\n\t\t\t\tleft: 50%;\r\n\t\t\t\tmargin-left: -40px;\r\n\t\t\t\tbackground: url('images/toggle.svg') center center no-repeat, rgba(132,128,136,0.75);\r\n\t\t\t\tborder-top: 0;\r\n\t\t\t\tborder-radius: 0 0 0.35em 0.35em;\r\n\t\t\t}\r\n\r\n\t#navPanel\r\n\t{\r\n\t\tposition: relative;\r\n\t\tbackground: #1f1920;\r\n\t\tbox-shadow: inset 0px -2px 5px 0px rgba(0,0,0,0.25);\r\n\t\tfont-size: 1em;\r\n\t}\r\n\r\n\t\t#navPanel:before\r\n\t\t{\r\n\t\t\tcontent: '';\r\n\t\t\tdisplay: block;\r\n\t\t\tposition: absolute;\r\n\t\t\tleft: 0;\r\n\t\t\ttop: 0;\r\n\t\t\twidth: 100%;\r\n\t\t\theight: 100%;\r\n\t\t\tbackground: /*url('images/overlay.png')*/;\r\n\t\t\tbackground-size: 128px 128px;\r\n\t\t}\r\n\r\n\t\t#navPanel .link\r\n\t\t{\r\n\t\t\tposition: relative;\r\n\t\t\tz-index: 1;\r\n\t\t\tdisplay: block;\r\n\t\t\ttext-decoration: none;\r\n\t\t\tpadding: 0.5em;\r\n\t\t\tcolor: #ddd;\r\n\t\t\tborder: 0;\r\n\t\t\tborder-top: dotted 1px rgba(255,255,255,0.05);\r\n\t\t}\r\n\t\t\r\n\t\t\t#navPanel .link:first-child\r\n\t\t\t{\r\n\t\t\t\tborder-top: 0;\r\n\t\t\t}\r\n\t\t\r\n\t\t\t#navPanel .link.depth-0\r\n\t\t\t{\r\n\t\t\t\tcolor: #fff;\r\n\t\t\t\tfont-weight: 600;\r\n\t\t\t}\r\n\r\n\t\t\t#navPanel .indent-1 { display: inline-block; width: 1em; }\r\n\t\t\t#navPanel .indent-2 { display: inline-block; width: 2em; }\r\n\t\t\t#navPanel .indent-3 { display: inline-block; width: 3em; }\r\n\t\t\t#navPanel .indent-4 { display: inline-block; width: 4em; }\r\n\t\t\t#navPanel .indent-5 { display: inline-block; width: 5em; }\r\n\t\t\t#navPanel .depth-0 { color: #fff; }\r\n\r\n/*********************************************************************************/\r\n/* Wrapper                                                                       */\r\n/*********************************************************************************/\r\n\r\n\t.wrapper\r\n\t{\r\n\t\tpadding: 3em 1em 3em 1em;\r\n\t}\r\n\r\n/*********************************************************************************/\r\n/* Header                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#header\r\n\t{\r\n\t\tpadding-bottom: 0;\r\n\t}\r\n\r\n\t\t#header .inner\r\n\t\t{\r\n\t\t\tpadding-top: 1.5em;\r\n\t\t\tpadding-left: 1em;\r\n\t\t\tpadding-right: 1em;\r\n\t\t}\r\n\r\n\t\t#header h1\r\n\t\t{\r\n\t\t\tfont-size: 2.5em;\r\n\t\t}\r\n\t\t\r\n\t\t\t.homepage #header h1\r\n\t\t\t{\r\n\t\t\t\tfont-size: 2.5em;\r\n\t\t\t}\r\n\t\t\r\n\t\t#header .byline\r\n\t\t{\r\n\t\t\tfont-size: 1em;\r\n\t\t}\r\n\r\n\t\t#header hr\r\n\t\t{\r\n\t\t\ttop: 1em;\r\n\t\t\tmargin-bottom: 2.5em;\r\n\t\t}\r\n\r\n/*********************************************************************************/\r\n/* Nav                                                                           */\r\n/*********************************************************************************/\r\n\r\n\t#nav\r\n\t{\r\n\t\tdisplay: none;\r\n\t}\r\n\r\n/*********************************************************************************/\r\n/* Banner                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#banner\r\n\t{\r\n\t\tpadding: 3em 2em 3em 2em;\r\n\t}\r\n\r\n/*********************************************************************************/\r\n/* Sidebar                                                                       */\r\n/*********************************************************************************/\r\n\r\n\t#sidebar\r\n\t{\r\n\t}\r\n\t\r\n\t\t#sidebar > hr:first-of-type\r\n\t\t{\r\n\t\t\tdisplay: block;\r\n\t\t}\r\n\r\n/*********************************************************************************/\r\n/* Main                                                                          */\r\n/*********************************************************************************/\r\n\r\n\t#main\r\n\t{\r\n\t}\r\n\t\r\n\t\t#main > header\r\n\t\t{\r\n\t\t\ttext-align: center;\r\n\t\t}\r\n\r\n/*********************************************************************************/\r\n/* Footer                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#footer\r\n\t{\r\n\t\tpadding-left: 1em;\r\n\t\tpadding-right: 1em;\r\n\t}\r\n\t\r\n/*********************************************************************************/\r\n/* Carousel                                                                      */\r\n/*********************************************************************************/\r\n\r\n\t.carousel\r\n\t{\r\n\t\tpadding: 0.5em 0 0.5em 0;\r\n\t}\r\n\r\n\t\t.carousel .reel\r\n\t\t{\r\n\t\t\tpadding: 0 0.5em 0 0.5em;\r\n\t\t}\r\n\t\r\n\t\t.carousel article\r\n\t\t{\r\n\t\t\twidth: 14em;\r\n\t\t\tpadding-bottom: 2em;\r\n\t\t\tmargin: 0 0.5em 0 0;\r\n\t\t}\r\n\r\n\t\t\t.carousel article .image\r\n\t\t\t{\r\n\t\t\t\tmargin-bottom: 2em;\r\n\t\t\t}"; });
-define('text!css/style-narrow.css', ['module'], function(module) { module.exports = "/*\r\n\tHelios 1.0 by HTML5 UP\r\n\thtml5up.net | @n33co\r\n\tFree for personal and commercial use under the CCA 3.0 license (html5up.net/license)\r\n*/"; });
-define('text!css/style-narrower.css', ['module'], function(module) { module.exports = "/*\r\n\tHelios 1.0 by HTML5 UP\r\n\thtml5up.net | @n33co\r\n\tFree for personal and commercial use under the CCA 3.0 license (html5up.net/license)\r\n*/\r\n\r\n/*********************************************************************************/\r\n/* Basic                                                                         */\r\n/*********************************************************************************/\r\n\r\n\tbody,input,textarea,select\r\n\t{\r\n\t\tfont-size: 13pt;\r\n\t\tline-height: 1.65em;\r\n\t}\r\n\r\n\t.tweet\r\n\t{\r\n\t\ttext-align: center;\r\n\t}\r\n\r\n/*********************************************************************************/\r\n/* Footer                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#footer\r\n\t{\r\n\t\tpadding: 4em 2em 4em 2em;\r\n\t}\r\n\t\r\n/*********************************************************************************/\r\n/* Carousel                                                                      */\r\n/*********************************************************************************/\r\n\r\n\t.carousel\r\n\t{\r\n\t\tpadding: 1.25em 0 1.25em 0;\r\n\t}\r\n\r\n\t\t.carousel article\r\n\t\t{\r\n\t\t\twidth: 18em;\r\n\t\t\tmargin: 0 1em 0 0;\r\n\t\t}"; });
-define('text!css/style-normal.css', ['module'], function(module) { module.exports = "/*\r\n\tHelios 1.0 by HTML5 UP\r\n\thtml5up.net | @n33co\r\n\tFree for personal and commercial use under the CCA 3.0 license (html5up.net/license)\r\n*/\r\n\r\n/*********************************************************************************/\r\n/* Wrapper                                                                       */\r\n/*********************************************************************************/\r\n\r\n\t.wrapper\r\n\t{\r\n\t\tpadding-left: 2em;\r\n\t\tpadding-right: 2em;\r\n\t}\r\n\t\r\n/*********************************************************************************/\r\n/* Header                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#header\r\n\t{\r\n\t}\r\n\r\n\t\t#header .inner\r\n\t\t{\r\n\t\t\tpadding-left: 2em;\r\n\t\t\tpadding-right: 2em;\r\n\t\t}\r\n\t\r\n/*********************************************************************************/\r\n/* Banner                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#banner\r\n\t{\r\n\t\tpadding-left: 2em;\r\n\t\tpadding-right: 2em;\r\n\t}\r\n\t\r\n/*********************************************************************************/\r\n/* Footer                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#footer\r\n\t{\r\n\t\tpadding-left: 2em;\r\n\t\tpadding-right: 2em;\r\n\t}"; });
-define('text!css/style-noscript.css', ['module'], function(module) { module.exports = "/*\r\n\tHelios 1.0 by HTML5 UP\r\n\thtml5up.net | @n33co\r\n\tFree for personal and commercial use under the CCA 3.0 license (html5up.net/license)\r\n*/\r\n\r\n/*********************************************************************************/\r\n/* Header                                                                        */\r\n/*********************************************************************************/\r\n\r\n\t#header\r\n\t{\r\n\t}\r\n\r\n\t\t.homepage #header\r\n\t\t{\r\n\t\t}\r\n\t\r\n\t\t\t.homepage #header:after\r\n\t\t\t{\r\n\t\t\t\tdisplay: none;\r\n\t\t\t}\r\n\r\n/*********************************************************************************/\r\n/* Nav                                                                           */\r\n/*********************************************************************************/\r\n\r\n\t#nav\r\n\t{\r\n\t}\r\n\r\n\t\t#nav > ul > li > ul\r\n\t\t{\r\n\t\t\tdisplay: none;\r\n\t\t}\r\n\r\n"; });
-define('text!css/style-wide.css', ['module'], function(module) { module.exports = "/*\r\n\tHelios 1.0 by HTML5 UP\r\n\thtml5up.net | @n33co\r\n\tFree for personal and commercial use under the CCA 3.0 license (html5up.net/license)\r\n*/\r\n\r\n/*********************************************************************************/\r\n/* Basic                                                                         */\r\n/*********************************************************************************/\r\n\r\n\tbody,input,textarea,select\r\n\t{\r\n\t\tfont-size: 14pt;\r\n\t\tline-height: 1.75em;\r\n\t}\r\n\t\r\n"; });
-define('text!css/style.css', ['module'], function(module) { module.exports = "@charset 'UTF-8';\r\n\r\n@font-face {\r\n\tfont-family: 'FontAwesome';\r\n\tsrc: url('font/fontawesome-webfont.eot?v=3.2.1');\r\n\tsrc: url('font/fontawesome-webfont.eot?#iefix&v=3.2.1') format('embedded-opentype'), url('font/fontawesome-webfont.woff?v=3.2.1') format('woff'), url('font/fontawesome-webfont.ttf?v=3.2.1') format('truetype'), url('font/fontawesome-webfont.svg#fontawesomeregular?v=3.2.1') format('svg');\r\n\tfont-weight: normal;\r\n\tfont-style: normal;\r\n}\r\n\r\n/* Basic */\r\n\r\n\tbody.paused *\r\n\t{\r\n\t\t-moz-transition: none;\r\n\t\t-webkit-transition: none;\r\n\t\t-o-transition: none;\r\n\t\t-ms-transition: none;\r\n\t\ttransition: none;\r\n\t}\r\n\r\n\tbody\r\n\t{\r\n\t\tbackground: #f0f4f4;\r\n\t\tcolor: #5b5b5b;\r\n\t\tfont-family: 'Source Sans Pro', sans-serif;\r\n\t\tfont-weight: 300;\r\n\t}\r\n\r\n\tbody,input,textarea,select\r\n\t{\r\n\t\tfont-size: 15pt;\r\n\t\tline-height: 1.85em;\r\n\t}\r\n\r\n\th1,h2,h3,h4,h5,h6\r\n\t{\r\n\t\tfont-weight: 400;\r\n\t\tcolor: #483949;\r\n\t\tline-height: 1.25em;\r\n\t}\r\n\t\r\n\t\th1 a, h2 a, h3 a, h4 a, h5 a, h6 a\r\n\t\t{\r\n\t\t\tcolor: inherit;\r\n\t\t\ttext-decoration: none;\r\n\t\t\tborder-bottom-color: transparent;\r\n\t\t}\r\n\t\t\r\n\t\th1 strong, h2 strong, h3 strong, h4 strong, h5 strong, h6 strong\r\n\t\t{\r\n\t\t\tfont-weight: 600;\r\n\t\t}\r\n\r\n\th2\r\n\t{\r\n\t\tfont-size: 2.85em;\r\n\t}\r\n\t\r\n\th3\r\n\t{\r\n\t\tfont-size: 1.25em;\r\n\t}\r\n\t\r\n\th4\r\n\t{\r\n\t\tfont-size: 1em;\r\n\t\tmargin: 0 0 0.25em 0;\r\n\t}\r\n\t\r\n\t.byline\r\n\t{\r\n\t\tdisplay: block;\r\n\t\tfont-size: 1.5em;\r\n\t\tmargin-top: 1em;\r\n\t\tline-height: 1.5em;\r\n\t}\r\n\r\n\tstrong, b\r\n\t{\r\n\t\tfont-weight: 400;\r\n\t\tcolor: #483949;\r\n\t}\r\n\t\r\n\tem, i\r\n\t{\r\n\t\tfont-style: italic;\r\n\t}\r\n\r\n\ta\r\n\t{\r\n\t\tcolor: inherit;\r\n\t\tborder-bottom: solid 1px rgba(128,128,128,0.15);\r\n\t\ttext-decoration: none;\r\n\t\t-moz-transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;\r\n\t\t-webkit-transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;\r\n\t\t-o-transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;\r\n\t\t-ms-transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;\r\n\t\ttransition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;\r\n\t}\r\n\t\r\n\t\ta:hover\r\n\t\t{\r\n\t\t\tcolor: #ef8376;\r\n\t\t\tborder-bottom-color: transparent;\r\n\t\t}\r\n\r\n\tsub\r\n\t{\r\n\t\tposition: relative;\r\n\t\ttop: 0.5em;\r\n\t\tfont-size: 0.8em;\r\n\t}\r\n\t\r\n\tsup\r\n\t{\r\n\t\tposition: relative;\r\n\t\ttop: -0.5em;\r\n\t\tfont-size: 0.8em;\r\n\t}\r\n\t\r\n\tblockquote\r\n\t{\r\n\t\tborder-left: solid 0.5em #ddd;\r\n\t\tpadding: 1em 0 1em 2em;\r\n\t\tfont-style: italic;\r\n\t}\r\n\t\r\n\tp, ul, ol, dl, table\r\n\t{\r\n\t\tmargin-bottom: 1em;\r\n\t}\r\n\r\n\tp\r\n\t{\r\n\t\ttext-align: justify;\r\n\t}\r\n\r\n\tbr.clear\r\n\t{\r\n\t\tclear: both;\r\n\t}\r\n\t\r\n\theader\r\n\t{\r\n\t\tmargin: 0 0 1em 0;\r\n\t}\r\n\t\r\n\t\theader .byline\r\n\t\t{\r\n\t\t\tmargin-bottom: 2em;\r\n\t\t}\r\n\t\t\r\n\tfooter\r\n\t{\r\n\t\tmargin: 2.5em 0 0 0;\r\n\t}\r\n\t\t\r\n\thr\r\n\t{\r\n\t\tposition: relative;\r\n\t\tdisplay: block;\r\n\t\tborder: 0;\r\n\t\ttop: 4.5em;\r\n\t\tmargin-bottom: 9em;\r\n\r\n\t\theight: 6px;\r\n\t\tborder-top: solid 1px rgba(128,128,128,0.2);\r\n\t\tborder-bottom: solid 1px rgba(128,128,128,0.2);\r\n\t}\r\n\t\r\n\t\thr:before,\r\n\t\thr:after\r\n\t\t{\r\n\t\t\tcontent: '';\r\n\t\t\tposition: absolute;\r\n\t\t\ttop: -8px;\r\n\t\t\tdisplay: block;\r\n\t\t\twidth: 1px;\r\n\t\t\theight: 21px;\r\n\t\t\tbackground: rgba(128,128,128,0.2);\t\t\t\r\n\t\t}\r\n\r\n\t\thr:before\r\n\t\t{\r\n\t\t\tleft: -1px;\r\n\t\t}\r\n\r\n\t\thr:after\r\n\t\t{\r\n\t\t\tright: -1px;\r\n\t\t}\r\n\r\n\t.timestamp\r\n\t{\r\n\t\tcolor: rgba(128,128,128,0.75);\r\n\t\tfont-size: 0.8em;\r\n\t}\r\n\r\n\t/* Sections/Articles */\r\n\t\r\n\t\tsection,\r\n\t\tarticle\r\n\t\t{\r\n\t\t\tmargin-bottom: 3em;\r\n\t\t}\r\n\t\t\r\n\t\tsection > :last-child,\r\n\t\tarticle > :last-child\r\n\t\t{\r\n\t\t\tmargin-bottom: 0;\r\n\t\t}\r\n\r\n\t\tsection:last-child,\r\n\t\tarticle:last-child\r\n\t\t{\r\n\t\t\tmargin-bottom: 0;\r\n\t\t}\r\n\r\n\t\t.row > section,\r\n\t\t.row > article\r\n\t\t{\r\n\t\t\tmargin-bottom: 0;\r\n\t\t}\r\n\r\n\t\tsection.special > header,\r\n\t\tsection.special > footer,\r\n\t\tarticle.special > header,\r\n\t\tarticle.special > footer\r\n\t\t{\r\n\t\t\ttext-align: center;\r\n\t\t}\r\n\r\n\t/* Images */\r\n\r\n\t\t.image\r\n\t\t{\r\n\t\t\tposition: relative;\r\n\t\t\tdisplay: inline-block;\r\n\t\t\tborder: 0;\r\n\t\t\toutline: 0;\r\n\t\t}\r\n\t\t\r\n\t\t\t.image img\r\n\t\t\t{\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\twidth: 100%;\r\n\t\t\t}\r\n\r\n\t\t\t.image.full\r\n\t\t\t{\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\twidth: 100%;\r\n\t\t\t}\r\n\r\n\t\t\t.image.featured\r\n\t\t\t{\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\twidth: 100%;\r\n\t\t\t\tmargin: 0 0 4em 0;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t.image.left\r\n\t\t\t{\r\n\t\t\t\tfloat: left;\r\n\t\t\t\tmargin: 0 2em 2em 0;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t.image.centered\r\n\t\t\t{\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\tmargin: 0 0 2em 0;\r\n\t\t\t}\r\n\r\n\t\t\t\t.image.centered img\r\n\t\t\t\t{\r\n\t\t\t\t\tmargin: 0 auto;\r\n\t\t\t\t\twidth: auto;\r\n\t\t\t\t}\r\n\r\n\t/* Lists */\r\n\r\n\t\tul.style1\r\n\t\t{\r\n\t\t}\r\n\r\n\t\tul.actions\r\n\t\t{\r\n\t\t}\r\n\r\n\t\t\r\n\t\tul.menu\r\n\t\t{\r\n\t\t\theight: 1em;\r\n\t\t\tline-height: 1em;\r\n\t\t}\r\n\t\t\r\n\t\t\tul.menu li\r\n\t\t\t{\r\n\t\t\t\tdisplay: inline-block;\r\n                text-align: center;\r\n\t\t\t\tborder-left: solid 1px rgba(128,128,128,0.2);\r\n\t\t\t\tpadding-left: 1.25em;\r\n\t\t\t\tmargin-left: 1.25em;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\tul.menu li:first-child\r\n\t\t\t{\r\n\t\t\t\tborder-left: 0;\r\n\t\t\t\tpadding-left: 0;\r\n\t\t\t\tmargin-left: 0;\r\n\t\t\t}\r\n\r\n\t/* Forms */\r\n\r\n\t\tform\r\n\t\t{\r\n\t\t}\r\n\t\t\r\n\t\t\tform label\r\n\t\t\t{\r\n\t\t\t\tdisplay: block;\r\n\t\t\t}\r\n\t\t\r\n\t\t\tform input.text,\r\n\t\t\tform select,\r\n\t\t\tform textarea\r\n\t\t\t{\r\n\t\t\t\t-webkit-appearance: none;\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\tborder: 0;\r\n\t\t\t\tbackground: #ccc;\r\n\t\t\t\twidth: 100%;\r\n\t\t\t}\r\n\r\n\t\t\t\tform input.text:hover,\r\n\t\t\t\tform select:hover,\r\n\t\t\t\tform textarea:hover\r\n\t\t\t\t{\r\n\t\t\t\t}\r\n\r\n\t\t\t\tform input.text:focus,\r\n\t\t\t\tform select:focus,\r\n\t\t\t\tform textarea:focus\r\n\t\t\t\t{\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\t\t\t\tform textarea\r\n\t\t\t\t{\r\n\t\t\t\t\tmin-height: 9em;\r\n\t\t\t\t}\r\n\r\n\t\t\t\tform .formerize-placeholder\r\n\t\t\t\t{\r\n\t\t\t\t\tcolor: #555 !important;\r\n\t\t\t\t}\r\n\r\n\t\t\t\tform ::-webkit-input-placeholder\r\n\t\t\t\t{\r\n\t\t\t\t\tcolor: #555 !important;\r\n\t\t\t\t}\r\n\r\n\t\t\t\tform :-moz-placeholder\r\n\t\t\t\t{\r\n\t\t\t\t\tcolor: #555 !important;\r\n\t\t\t\t}\r\n\r\n\t\t\t\tform ::-moz-placeholder\r\n\t\t\t\t{\r\n\t\t\t\t\tcolor: #555 !important;\r\n\t\t\t\t}\r\n\r\n\t\t\t\tform :-ms-input-placeholder\r\n\t\t\t\t{\r\n\t\t\t\t\tcolor: #555 !important;\r\n\t\t\t\t}\r\n\r\n\t\t\t\tform ::-moz-focus-inner\r\n\t\t\t\t{\r\n\t\t\t\t\tborder: 0;\r\n\t\t\t\t}\r\n\t\t\t\r\n\t/* Tables */\r\n\t\r\n\t\ttable\r\n\t\t{\r\n\t\t\twidth: 100%;\r\n\t\t}\r\n\t\t\r\n\t\t\ttable.style1\r\n\t\t\t{\r\n\t\t\t\twidth: 100%;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t\ttable.style1 tbody tr:nth-child(2n+2)\r\n\t\t\t\t{\r\n\t\t\t\t\tbackground: #f4f4f4;\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\t\t\t\ttable.style1 td\r\n\t\t\t\t{\r\n\t\t\t\t\tpadding: 0.5em 1em 0.5em 1em;\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\t\t\t\ttable.style1 th\r\n\t\t\t\t{\r\n\t\t\t\t\ttext-align: left;\r\n\t\t\t\t\tfont-weight: 400;\r\n\t\t\t\t\tpadding: 0.5em 1em 0.5em 1em;\r\n\t\t\t\t}\r\n\t\t\t\r\n\t\t\t\ttable.style1 thead\r\n\t\t\t\t{\r\n\t\t\t\t\tbackground: #444;\r\n\t\t\t\t\tcolor: #fff;\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\t\t\t\ttable.style1 tfoot\r\n\t\t\t\t{\r\n\t\t\t\t\tbackground: #eee;\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\t\t\t\ttable.style1 tbody\r\n\t\t\t\t{\r\n\t\t\t\t}\r\n\r\n\t/* Buttons */\r\n\t\t\r\n\t\t.button\r\n\t\t{\r\n\t\t\tposition: relative;\r\n\t\t\tdisplay: inline-block;\r\n\t\t\tbackground: #df7366;\r\n\t\t\tcolor: #fff;\r\n\t\t\ttext-align: center;\r\n\t\t\tborder-radius: 0.5em;\r\n\t\t\ttext-decoration: none;\r\n\t\t\tpadding: 0.65em 3em 0.65em 3em;\r\n\t\t\tborder: 0;\r\n\t\t\tcursor: pointer;\r\n\t\t\toutline: 0;\r\n\t\t}\r\n\r\n\t\t\t.button:hover\r\n\t\t\t{\r\n\t\t\t\tcolor: #fff;\r\n\t\t\t\tbackground: #ef8376;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t.button:active\r\n\t\t\t{\r\n\t\t\t}\r\n\t\t\r\n\t\t\t.button.alt\r\n\t\t\t{\r\n\t\t\t}\r\n\r\n\t\t\t\t.button.alt:hover\r\n\t\t\t\t{\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\t\t\t\t.button.alt:active\r\n\t\t\t\t{\r\n\t\t\t\t}\r\n\t\t\r\n\t\t\t.button.small\r\n\t\t\t{\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t.button.big\r\n\t\t\t{\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t.button.huge\r\n\t\t\t{\r\n\t\t\t}\r\n\t\t\t\r\n/* Wrapper */\r\n\r\n\t.wrapper\r\n\t{\r\n\t\tbackground: #fff;\r\n\t\tmargin: 0 0 2em 0;\r\n\t\tpadding: 6em 0 6em 0;\r\n\t}\r\n\t\r\n\t\t.wrapper.style\r\n\t\t{\r\n\t\t\tpadding-top: 0;\r\n\t\t}\r\n\r\n/* Header */\r\n\r\n\t#header\r\n\t{\r\n\t\tposition: relative;\r\n\t\tbackground-image: url('../images/header.jpg');\r\n\t\tbackground-size: cover;\r\n\t\tbackground-position: center center;\r\n\t\tbackground-attachment: fixed;\r\n\t\tcolor: #fff;\r\n\t\ttext-align: center;\r\n\t\tpadding: 2.5em 0 2em 0;\r\n\t\tcursor: default;\r\n\t}\r\n\r\n\t\t.homepage #header\r\n\t\t{\r\n\t\t\tpadding: 4em 0 4em 0;\r\n\t\t}\r\n\t\r\n\t\t\t.homepage #header .overlay\r\n\t\t\t{\r\n\t\t\t\tcontent: '';\r\n\t\t\t\tbackground: #1C0920;\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\tposition: absolute;\r\n\t\t\t\tleft: 0;\r\n\t\t\t\ttop: 0;\r\n\t\t\t\twidth: 100%;\r\n\t\t\t\theight: 100%;\r\n\t\t\t\topacity: 1.0;\r\n\t\t\t\t-moz-transition: opacity 2s ease-in-out;\r\n\t\t\t\t-webkit-transition: opacity 2s ease-in-out;\r\n\t\t\t\t-o-transition: opacity 2s ease-in-out;\r\n\t\t\t\t-ms-transition: opacity 2s ease-in-out;\r\n\t\t\t\ttransition: opacity 2s ease-in-out;\r\n\t\t\t}\r\n\t\t\r\n\t\t\t.homepage #header.ready .overlay\r\n\t\t\t{\r\n\t\t\t\topacity: 0;\r\n\t\t\t}\r\n\r\n\t\t#header .inner\r\n\t\t{\r\n\t\t\tposition: relative;\r\n\t\t\tz-index: 1;\r\n\t\t\tmargin: 0;\r\n\t\t\tpadding: 4em 0 0 0;\r\n\t\t}\r\n\t\r\n\t\t#header h1\r\n\t\t{\r\n\t\t\tcolor: #fff;\r\n\t\t\tfont-size: 3em;\r\n\t\t\tline-height: 1em;\r\n\t\t}\r\n\r\n\t\t\t.homepage #header h1\r\n\t\t\t{\r\n\t\t\t\tfont-size: 4em;\r\n\t\t\t}\r\n\t\t\r\n\t\t\t#header h1 a\r\n\t\t\t{\r\n\t\t\t\tcolor: inherit;\r\n\t\t\t}\r\n\t\r\n\t\t#header .byline\r\n\t\t{\r\n\t\t\tfont-size: 1.25em;\r\n\t\t\tmargin: 0;\r\n\t\t}\r\n\t\t\r\n\t\t#header .button\r\n\t\t{\r\n\t\t\tborder-radius: 100%;\r\n\t\t\twidth: 4.5em;\r\n\t\t\theight: 4.5em;\r\n\t\t\tline-height: 4.5em;\r\n\t\t\ttext-align: center;\r\n\t\t\tfont-size: 1.25em;\r\n\t\t\tpadding: 0;\r\n\t\t}\r\n\t\t\r\n\t\t#header header\r\n\t\t{\r\n\t\t\tdisplay: inline-block;\r\n\t\t}\r\n\t\t\r\n\t\t#header footer\r\n\t\t{\r\n\t\t\tmargin: 1em 0 0 0;\r\n\t\t}\r\n\t\t\r\n\t\t#header hr\r\n\t\t{\r\n\t\t\ttop: 1.5em;\r\n\t\t\tmargin-bottom: 3em;\r\n\r\n\t\t\tborder-bottom-color: rgba(192,192,192,0.35);\r\n\t\t\tbox-shadow: inset 0 1px 0 0 rgba(192,192,192,0.35);\r\n\t\t}\r\n\t\t\r\n\t\t\t#header hr:before,\r\n\t\t\t#header hr:after\r\n\t\t\t{\r\n\t\t\t\tbackground: rgba(192,192,192,0.35);\r\n\t\t\t}\r\n\r\n/* Nav */\r\n\r\n\t#nav\r\n\t{\r\n\t\tposition: absolute;\r\n\t\ttop: 0;\r\n\t\tleft: 0;\r\n\t\twidth: 100%;\r\n\t\ttext-align: center;\r\n\t\tpadding: 1.5em 0 1.5em 0;\r\n\t\tz-index: 1;\r\n\t\toverflow: hidden;\r\n\t}\r\n\t\r\n\t\t#nav > ul\r\n\t\t{\r\n\t\t\tline-height: 0px;\r\n\t\t\tposition: relative;\r\n\t\t\tdisplay: inline-block;\r\n\t\t\tmargin: 0;\r\n\r\n\t\t\theight: 21px;\r\n\t\t\tborder-left: solid 1px rgba(192,192,192,0.35);\r\n\t\t\tborder-right: solid 1px rgba(192,192,192,0.35);\r\n\t\t}\r\n\t\t\r\n\t\t\t#nav > ul:before,\r\n\t\t\t#nav > ul:after\r\n\t\t\t{\r\n\t\t\t\tcontent: '';\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\twidth: 300%;\r\n\t\t\t\tposition: absolute;\r\n\t\t\t\ttop: 50%;\r\n\t\t\t\tmargin-top: -2px;\r\n\r\n\t\t\t\theight: 5px;\r\n\t\t\t\tborder-top: solid 1px rgba(192,192,192,0.35);\r\n\t\t\t\tborder-bottom: solid 1px rgba(192,192,192,0.35);\r\n\t\t\t}\r\n\t\t\r\n\t\t\t#nav > ul:before\r\n\t\t\t{\r\n\t\t\t\tleft: 100%;\r\n\t\t\t\tmargin-left: 1px;\r\n\t\t\t}\r\n\t\t\r\n\t\t\t#nav > ul:after\r\n\t\t\t{\r\n\t\t\t\tright: 100%;\r\n\t\t\t\tmargin-right: 1px;\r\n\t\t\t}\r\n\t\t\r\n\t\t\t#nav > ul > li\r\n\t\t\t{\r\n\t\t\t\tdisplay: inline-block;\r\n\t\t\t\tmargin: -9px 0.5em 0 0.5em;\r\n\t\t\t\tborder-radius: 0.5em;\r\n\t\t\t\tpadding: 0.85em;\r\n\t\t\t\tborder: solid 1px transparent;\r\n\t\t\t\t-moz-transition: color 0.35s ease-in-out, border-color 0.35s ease-in-out;\r\n\t\t\t\t-webkit-transition: color 0.35s ease-in-out, border-color 0.35s ease-in-out;\r\n\t\t\t\t-o-transition: color 0.35s ease-in-out, border-color 0.35s ease-in-out;\r\n\t\t\t\t-ms-transition: color 0.35s ease-in-out, border-color 0.35s ease-in-out;\r\n\t\t\t\ttransition: color 0.35s ease-in-out, border-color 0.35s ease-in-out;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t\t#nav > ul > li.active\r\n\t\t\t\t{\r\n\t\t\t\t\tborder-color: rgba(192,192,192,0.35);\r\n\t\t\t\t}\r\n\t\t\t\r\n\t\t\t\t#nav > ul > li > a,\r\n\t\t\t\t#nav > ul > li > span\r\n\t\t\t\t{\r\n\t\t\t\t\tdisplay: block;\r\n\t\t\t\t\tcolor: inherit;\r\n\t\t\t\t\ttext-decoration: none;\r\n\t\t\t\t\tborder: 0;\r\n\t\t\t\t\toutline: 0;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t#nav > ul > li > ul\r\n\t\t\t\t{\r\n\t\t\t\t\tdisplay: none;\r\n\t\t\t\t}\r\n\r\n\t.dropotron\r\n\t{\r\n\t\tbackground: rgba(255,255,255,0.975);\r\n\t\tpadding: 1em 1.25em 1em 1.25em;\r\n\t\tline-height: 1em;\r\n\t\theight: auto;\r\n\t\ttext-align: left;\r\n\t\tborder-radius: 0.5em;\r\n\t\tbox-shadow: 0 0.15em 0.25em 0 rgba(0,0,0,0.25);\r\n\t\tmin-width: 12em;\r\n\t}\r\n\t\r\n\t\t.dropotron li\r\n\t\t{\r\n\t\t\tborder-top: solid 1px rgba(128,128,128,0.2);\r\n\t\t\tcolor: #5b5b5b;\r\n\t\t}\r\n\t\t\r\n\t\t\t.dropotron li:first-child\r\n\t\t\t{\r\n\t\t\t\tborder-top: 0;\r\n\t\t\t}\r\n\r\n\t\t\t.dropotron li:hover\r\n\t\t\t{\r\n\t\t\t\tcolor: #ef8376;\r\n\t\t\t}\r\n\r\n\t\t\t.dropotron li a,\r\n\t\t\t.dropotron li span\r\n\t\t\t{\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\tborder: 0;\r\n\t\t\t\tpadding: 0.5em 0 0.5em 0;\r\n\t\t\t\t-moz-transition: color 0.35s ease-in-out;\r\n\t\t\t\t-webkit-transition: color 0.35s ease-in-out;\r\n\t\t\t\t-o-transition: color 0.35s ease-in-out;\r\n\t\t\t\t-ms-transition: color 0.35s ease-in-out;\r\n\t\t\t\ttransition: color 0.35s ease-in-out;\r\n\t\t\t}\r\n\t\t\r\n\t\t.dropotron-level-0\r\n\t\t{\r\n\t\t\tmargin-top: 2em;\r\n\t\t\tfont-size: 0.9em;\r\n\t\t}\r\n\t\t\r\n\t\t\t.dropotron-level-0:before\r\n\t\t\t{\r\n\t\t\t\tcontent: '';\r\n\t\t\t\tposition: absolute;\r\n\t\t\t\tleft: 50%;\r\n\t\t\t\ttop: -0.7em;\r\n\t\t\t\tmargin-left: -0.75em;\r\n\t\t\t\tborder-bottom: solid 0.75em rgba(255,255,255,0.975);\r\n\t\t\t\tborder-left: solid 0.75em rgba(64,64,64,0);\r\n\t\t\t\tborder-right: solid 0.75em rgba(64,64,64,0);\r\n\t\t\t}\r\n\r\n/* Banner */\r\n\r\n\t#banner\r\n\t{\r\n\t\tbackground: #fff;\r\n\t\ttext-align: center;\r\n\t\tpadding: 4.5em 0 4.5em 0;\r\n\t}\r\n\r\n/* Content */\r\n\r\n\t#content\r\n\t{\r\n\t}\r\n\r\n\t\t#content > hr\r\n\t\t{\r\n\t\t\ttop: 3em;\r\n\t\t\tmargin-bottom: 6em;\r\n\t\t}\r\n\t\t\r\n\t\t#content > section\r\n\t\t{\r\n\t\t\tmargin-bottom: 0;\r\n\t\t}\r\n\t\t\r\n/* Sidebar */\r\n\r\n\t#sidebar\r\n\t{\r\n\t}\r\n\t\r\n\t\t#sidebar > hr.first\r\n\t\t{\r\n\t\t\tdisplay: none;\r\n\t\t}\r\n\t\r\n\t\t#sidebar > hr\r\n\t\t{\r\n\t\t\ttop: 3em;\r\n\t\t\tmargin-bottom: 6em;\r\n\t\t}\r\n\t\t\r\n\t\t#sidebar > section\r\n\t\t{\r\n\t\t\tmargin-bottom: 0;\r\n\t\t}\r\n\r\n/* Main */\r\n\r\n\t#main\r\n\t{\r\n\t}\r\n\t\r\n\t\t#main section:first-of-type\r\n\t\t{\r\n\t\t\tpadding-top: 2em;\r\n\t\t}\t\t\r\n\t\r\n/* Footer */\r\n\r\n\t#footer\r\n\t{\r\n\t\tposition: relative;\r\n\t\toverflow: hidden;\r\n\t\tpadding: 6em 0 6em 0;\r\n\t\tbackground: #2b252c;\r\n\t\tcolor: #fff;\r\n\t}\r\n\r\n\t\t#footer .copyright\r\n\t\t{\r\n\t\t\ttext-align: center;\r\n\t\t\tcolor: rgba(128,128,128,0.75);\r\n\t\t\tfont-size: 0.8em;\r\n\t\t\tcursor: default;\r\n\t\t}\r\n"; });
-define('text!css/styles_sk.css', ['module'], function(module) { module.exports = ".header {\n    background: black;\n    width: 100%;\n    top: 0;\n    position: fixed;\n}\n\n.container {\n    width: 960px;\n    margin: 0 auto;\n}\n\n.container_login {\n    float: right;\n    font-family: \"Helvetica\";\n    font-size: 12px;\n    padding: 16px;\n    color: #fff;\n\n}\n\n.logo{\n    float: left;\n    font-family: \"Helvetica\";\n    font-size: 15px;\n}\n\n.nav{\n    float: right;\n}\n\n.content_main {\n    margin-top: 200px;\n}\n\n.input-column {\n  width: 20%;\n}\n\n.input-column + .input-column {\n  margin-left: 15px;\n}\n\nthead {\n  text-align: left;\n}\n\n\n.content_main {\n    margin-top: 200px;\n}\n\n.container {\n    width: 960px;\n    margin: 0 auto;\n}\n\n.container_login {\n    float: right;\n    font-family: \"Helvetica\";\n    font-size: 12px;\n    padding: 16px;\n    color: #fff;\n\n}\n\nb{\n    color: white;\n}\n\na{\n    text-decoration: none;\n    color: white;\n}\n\nli{\n    list-style: none;   \n    float: left;\n    margin-left: 15px;\n    padding-top: 15px;\n    font-family: \"Helvetica\";\n}\n\ninput[type=text], input[type=password] {\n    width= 100%;\n    padding: 6px 10px;\n    margin: 4px 0;\n    display: inline-block;\n    border: 1px solid #ccc;\n    box-sizing: border-box;\n}\n\nspan.psw {\n    float: right;\n    padding-top: 16px;\n    color: white;\n}\n\n.cancelbtn {\n    width: 50%;\n    padding: 5px 9px;\n    float: right;\n    \n}\n\n.align-right{\n    float: right;\n}\n\nbutton {\n    cursor: pointer;\n    width: 50%;\n}\n\n.header {\n    background: black;\n    width: 100%;\n    top: 0;\n    position: fixed;\n}\n\ninput {\n    display: block;\n}\n\n.logo{\n    float: left;\n    font-family: \"Helvetica\";\n    font-size: 15px;\n}\n\n.nav{\n    float: right;\n}\n\n/* Säästukalkulaator */\n\n\n\n\n"; });
-define('text!login.html', ['module'], function(module) { module.exports = "<template>\r\n<div class=\"wrapper style1\">\r\n  <div class=\"container\">\r\n    <div class=\"row\">\r\n        <article id=\"main\" class=\"special\">\r\n          <header>\r\n            <h2><a href=\"login.html\">Logi sisse</a></h2>\r\n            <span class=\"byline\"> Kasutajana on Sul palju rohkem võimalusi - saad oma kulud salvestada, et saada terviklikum ülevaade, kuhu raha kaob. </span> </header>\r\n          </article>  \r\n    </div>\r\n  </div>\r\n</div>\r\n</template>"; });
-define('text!eelarvekalkulaator.html', ['module'], function(module) { module.exports = "<!DOCTYPE HTML>\r\n<html>\r\n<head>\r\n<title>Rahaplaneerija | Eelarvekalkulaator</title>\r\n<meta charset=\"utf-8\">\r\n<link href=\"http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600\" rel=\"stylesheet\" type=\"text/css\">\r\n\r\n<script src=\"js/jquery.min.js\"></script>\r\n<script src=\"js/jquery.dropotron.js\"></script>\r\n<script src=\"js/skel.min.js\"></script>\r\n<script src=\"js/skel-panels.min.js\"></script>\r\n<script src=\"js/init.js\"></script>\r\n<!---<script src=\"js/kalkuscript.js\"></script>--->\r\n\r\n<noscript>\r\n<link rel=\"stylesheet\" href=\"css/skel-noscript.css\">\r\n<link rel=\"stylesheet\" href=\"css/style.css\">\r\n<link rel=\"stylesheet\" href=\"css/style-noscript.css\">\r\n<link rel=\"stylesheet\" href=\"css/styles_sk.css\">\r\n\r\n</noscript>\r\n</head>\r\n    \r\n<body class=\"no-sidebar\">\r\n<div id=\"header\">\r\n  <div class=\"inner\">\r\n    <header>\r\n      <h1><a href=\"index.html\" id=\"logo\">Rahaplaneerija</a></h1>\r\n    </header>\r\n  </div>\r\n  <nav id=\"nav\">\r\n    <ul>\r\n      <li><a href=\"index.html\">Avaleht</a></li>\r\n      <li><a href=\"eelarvekalkulaator.html\">Eelarve kalkulaator</a></li>\r\n      <li><a href=\"login.html\">Logi sisse</a></li>\r\n    </ul>\r\n  </nav>\r\n</div>\r\n<div class=\"wrapper style1\">\r\n  <div class=\"container\">\r\n    <div class=\"row\">\r\n      <div class=\"12u skel-cell-mainContent\" id=\"content\">\r\n        <article id=\"main\" class=\"special\">\r\n          <header>\r\n            <h2><a href=\"eelarvekalkulaator.html\">Eelarve kalkulaator</a></h2>\r\n            <span class=\"byline\"> Vali sobiv kulutüüp, sisesta summa ning saad teada ..... Samamoodi ka tuludega </span> </header>\r\n            \r\n    <div class=\"container\">\r\n    <div class=\"content_main\">\r\n        <div>\r\n            <input type=\"text\" class=\"input-column\" id=\"liik\" name=\"liik\" placeholder=\"Sisesta nimi\">\r\n            <input type=\"text\" class=\"input-column\" id=\"summa\" name=\"summa\" placeholder=\"Sisesta eeldatav summa\">\r\n            <input type=\"text\" class=\"input-column\" id=\"summa2\" name=\"summa2\" placeholder=\"Sisesta tegelik summa\">\r\n            <select size=\"1\" class=\"input-column\" id=\"kulutulu\" name=\"kulutulu\">\r\n              <option value=\"Kulu\" selected=\"selected\">\r\n                Kulu\r\n              </option>\r\n              <option value=\"Tulu\">\r\n                Tulu\r\n              </option>\r\n           </select>\r\n           <button type=\"button\" class=\"input-column\" id=\"lisa-rida\">Lisa!</button>\r\n         </div>\r\n\r\n        <table id=\"table\" class=\"display\" cellspacing=\"0\" width=\"100%\">\r\n            <thead>\r\n                <tr>\r\n                    <th>Nimetus</th>\r\n                    <th>Sisesta eeldatav summa</th>\r\n                    <th>Sisesta tegelik summa</th>\r\n                    <th>Kulu või tulu</th>\r\n                    <th></th>\r\n                </tr>\r\n            </thead>\r\n            <tbody id=\"table-body\">\r\n            </tbody>\r\n        </table>\r\n    </div>\r\n    </div>            \r\n        </article>\r\n    </div>\r\n    </div>\r\n    <hr>\r\n    \r\n  </div>\r\n</div>\r\n\r\n<div class=\"copyright\">\r\n    <ul class=\"menu\">\r\n        <li>&copy; Rahaplaneerija 2017. All rights reserved.</li>\r\n    </ul>\r\n</div>\r\n      \r\n    \r\n<script src=\"js/kalkuscript.js\"></script>\r\n\r\n</body>\r\n</html>"; });
-define('text!kalkulaator.html', ['module'], function(module) { module.exports = "<template>\r\n  <style>\r\n    #input-form input,\r\n    #input-form select {\r\n      width: 100%;\r\n    }\r\n  </style>\r\n  <article id=\"main\" class=\"special\">\r\n    <header>\r\n      <h2>Eelarve kalkulaator</h2>\r\n      <span class=\"byline\"> Vali sobiv kulutüüp, sisesta summa ning saad teada ..... Samamoodi ka tuludega </span> \r\n    </header>\r\n    <div class=\"container\">\r\n      <form class=\"form-inline\" submit.trigger=\"addLine()\" id=\"input-form\">\r\n          <div class=\"col-xs-3\">\r\n            <input type=\"text\" class=\"form-control\" id=\"liik\" name=\"liik\" placeholder=\"Sisesta nimi\" value.bind=\"name\">\r\n          </div>\r\n          <div class=\"col-xs-3\">\r\n           <input type=\"number\" class=\"form-control\" id=\"summa\" name=\"summa\" placeholder=\"Sisesta eeldatav summa\" value.bind=\"expectedSum\">\r\n          </div>\r\n          <div class=\"col-xs-3\">\r\n            <input type=\"number\" class=\"form-control\" id=\"summa2\" name=\"summa2\" placeholder=\"Sisesta tegelik summa\" value.bind=\"actualSum\">\r\n          </div>  \r\n          <div class=\"col-xs-2\">\r\n            <select size=\"1\" class=\"form-control\" id=\"kulutulu\" name=\"kulutulu\" value.bind=\"type\">\r\n              <option value=\"Kulu\" selected=\"selected\">\r\n                Kulu\r\n              </option>\r\n              <option value=\"Tulu\">\r\n                Tulu\r\n              </option>\r\n            </select>\r\n          </div>\r\n          <div class=\"col-xs-1\">\r\n          <button type=\"submit\" class=\"btn btn-primary\" id=\"lisa-rida\">Lisa!</button>\r\n         </div>\r\n       </form>\r\n       <hr>\r\n       <table class=\"table\">\r\n         <thead>\r\n           <tr>\r\n             <th></th>\r\n             <th>Kulu</th>\r\n             <th>Tulu</th>\r\n             <th>Jääk</th>\r\n           </tr>\r\n         </thead>\r\n         <tbody>\r\n            <tr>\r\n              <td>Prognoositud</td>\r\n              <td textcontent.bind=\"expected.outcome\"></td>\r\n              <td textcontent.bind=\"expected.income\"></td>\r\n              <td textcontent.bind=\"expected.remainder\"></td>\r\n            </tr >\r\n              <td>Tegelik</td>\r\n              <td textcontent.bind=\"actual.outcome\"></td>\r\n              <td textcontent.bind=\"actual.income\"></td>\r\n              <td textcontent.bind=\"actual.remainder\"></td>\r\n            </tr>\r\n         </tbody>\r\n       </table> \r\n      <table class=\"table\">\r\n          <thead>\r\n            <tr>\r\n                <th>Nimetus</th>\r\n                <th>Sisesta eeldatav summa</th>\r\n                <th>Sisesta tegelik summa</th>\r\n                <th>Kulu või tulu</th>\r\n                <th></th>\r\n            </tr>\r\n          </thead>\r\n          <tbody id=\"table-body\">\r\n            <tr repeat.for=\"line of lines\">\r\n              <td>${line.name}</td>\r\n              <td>${line.expectedSum}</td>\r\n              <td>${line.actualSum}</td>\r\n              <td>${line.type}</td>\r\n              <td><button type=\"button\" class=\"btn btn-danger\" click.trigger=\"removeLine(line)\">Kustuta</button></td>\r\n            </tr>\r\n          </tbody>\r\n      </table>\r\n    </div>\r\n  </article>\r\n</template>"; });
+define('text!css/root.css', ['module'], function(module) { module.exports = "h1, h2, h3 {\n\ttext-align: center;\n}\n\n"; });
+define('text!kalkulaator.html', ['module'], function(module) { module.exports = "<template>\r\n  <style>\r\n    #input-form input,\r\n    #input-form select {\r\n      width: 100%;\r\n    }\r\n  </style>\r\n  <article id=\"main\" class=\"special\">\r\n    <header>\r\n      <h2>Eelarve kalkulaator</h2>\r\n      <span class=\"byline\"> Kalkulaatori kasutamine on imelihtne - sisesta eeldatud ning prognoositav kulu või tulu ning vajuta \"Lisa!\" ja sinu andmed kuvatakse.</span> \r\n    </header>\r\n    <hr/>\r\n    <div class=\"container\">\r\n      <form class=\"form-inline\" submit.trigger=\"addLine()\" id=\"input-form\">\r\n          <div class=\"col-xs-3\">\r\n            <input type=\"text\" class=\"form-control\" id=\"liik\" name=\"liik\" placeholder=\"Sisesta nimi\" value.bind=\"name\">\r\n          </div>\r\n          <div class=\"col-xs-3\">\r\n           <input type=\"number\" class=\"form-control\" id=\"summa\" name=\"summa\" placeholder=\"Sisesta eeldatav summa\" value.bind=\"expectedSum\">\r\n          </div>\r\n          <div class=\"col-xs-3\">\r\n            <input type=\"number\" class=\"form-control\" id=\"summa2\" name=\"summa2\" placeholder=\"Sisesta tegelik summa\" value.bind=\"actualSum\">\r\n          </div>  \r\n          <div class=\"col-xs-2\">\r\n            <select size=\"1\" class=\"form-control\" id=\"kulutulu\" name=\"kulutulu\" value.bind=\"type\">\r\n              <option value=\"Kulu\" selected=\"selected\">\r\n                Kulu\r\n              </option>\r\n              <option value=\"Tulu\">\r\n                Tulu\r\n              </option>\r\n            </select>\r\n          </div>\r\n          <div class=\"col-xs-1\">\r\n          <button type=\"submit\" class=\"btn btn-primary\" id=\"lisa-rida\">Lisa!</button>\r\n         </div>\r\n       </form>\r\n       <hr>\r\n       <table class=\"table\">\r\n         <thead>\r\n           <tr>\r\n             <th></th>\r\n             <th>Kulu</th>\r\n             <th>Tulu</th>\r\n             <th>Jääk</th>\r\n           </tr>\r\n         </thead>\r\n         <tbody>\r\n            <tr>\r\n              <td>Prognoositud</td>\r\n              <td textcontent.bind=\"expected.outcome\"></td>\r\n              <td textcontent.bind=\"expected.income\"></td>\r\n              <td textcontent.bind=\"expected.remainder\"></td>\r\n            </tr >\r\n              <td>Tegelik</td>\r\n              <td textcontent.bind=\"actual.outcome\"></td>\r\n              <td textcontent.bind=\"actual.income\"></td>\r\n              <td textcontent.bind=\"actual.remainder\"></td>\r\n            </tr>\r\n         </tbody>\r\n       </table> \r\n      <table class=\"table\">\r\n          <thead>\r\n            <tr>\r\n                <th>Nimetus</th>\r\n                <th>Sisesta eeldatav summa</th>\r\n                <th>Sisesta tegelik summa</th>\r\n                <th>Kulu või tulu</th>\r\n                <th></th>\r\n            </tr>\r\n          </thead>\r\n          <tbody id=\"table-body\">\r\n            <tr repeat.for=\"line of lines\">\r\n              <td>${line.name}</td>\r\n              <td>${line.expectedSum}</td>\r\n              <td>${line.actualSum}</td>\r\n              <td>${line.type}</td>\r\n              <td><button type=\"button\" class=\"btn btn-danger\" click.trigger=\"removeLine(line)\">Kustuta</button></td>\r\n            </tr>\r\n          </tbody>\r\n      </table>\r\n    </div>\r\n  </article>\r\n</template>"; });
+define('text!login.html', ['module'], function(module) { module.exports = "<template>\r\n\r\n\r\n\t<div if.bind=\"!register\">\r\n\t\t<div class=\"wrapper style1\">\r\n\t\t  <div class=\"container\">\r\n\t\t    <div class=\"row\">\r\n\t\t        <article id=\"main\" class=\"special\">\r\n\t\t          <header>\r\n\t\t            <h2>Logi sisse</h2>\r\n\t\t            <span class=\"byline\"> Kasutajana on Sul palju rohkem võimalusi - saad oma kulud salvestada, et saada terviklikum ülevaade, kuhu raha kaob. </span> </header>\r\n\t\t          </article>  \r\n\t\t    </div>\r\n\t\t  </div>\r\n\t\t</div>\r\n\t\t<hr/>\r\n\r\n\t\t<form class=\"form-horizontal\">\r\n\t\t  <div class=\"form-group\">\r\n\t\t    <label for=\"inputEmail3\" class=\"col-sm-2 control-label\">Email</label>\r\n\t\t    <div class=\"col-sm-10\">\r\n\t\t      <input type=\"email\" class=\"form-control\" id=\"inputEmail3\" placeholder=\"Sisestage meiliaadress\" value.bind=\"userData.email\">\r\n\t\t    </div>\r\n\t\t  </div>\r\n\t\t  <div class=\"form-group\">\r\n\t\t    <label for=\"inputPassword3\" class=\"col-sm-2 control-label\" >Parool</label>\r\n\t\t    <div class=\"col-sm-10\">\r\n\t\t      <input type=\"password\" class=\"form-control\" id=\"inputPassword3\" placeholder=\"Sisestage parool\" value.bind=\"userData.password\">\r\n\t\t    </div>\r\n\t\t  </div>\r\n\t\t  <div class=\"form-group\">\r\n\t\t    <div class=\"col-sm-offset-2 col-sm-10\">\r\n\t\t      <div class=\"checkbox\">\r\n\t\t        <label>\r\n\t\t          <input type=\"checkbox\">Jäta mind meelde\r\n\t\t        </label>\r\n\t\t      </div>\r\n\t\t    </div>\r\n\t\t  </div>\r\n\t\t  <div class=\"form-group\">\r\n\t\t    <div class=\"col-sm-offset-2 col-sm-10\">\r\n\t\t      <button type=\"submit\" class=\"btn btn-default\" click.delegate=\"loginUser()\">Logi sisse</button>\r\n\t\t      <button type=\"button\" class=\"btn btn-default\" click.trigger=\"toggleRegister()\">Registreeri</button>\r\n\t\t    </div>\r\n\t\t  </div>\r\n\t\t</form>\r\n\t</div>\r\n\r\n\t<div if.bind=\"register\">\r\n\t\t<div class=\"container\">\r\n\t\t\t<div class=\"row main\">\r\n\t\t\t\t<div class=\"panel-heading\">\r\n\t\t            <div class=\"panel-title text-center\">\r\n\t\t            \t<h1 class=\"title\">Registreeru Rahaplaneerija kasutajaks</h1>\r\n\t\t               \t\t<hr />\r\n\t\t            </div>\r\n\t\t        </div> \r\n\r\n\t\t<div if.bind=\"error\">Viga!</div>\r\n\r\n\t\t<div class=\"main-login main-center\">\r\n\t\t\t<form class=\"form-horizontal\" submit.delegate=\"addUser()\">\r\n\t\t\t\t<div class=\"form-group\">\r\n\t\t\t\t\t<label for=\"name\" class=\"cols-sm-2 control-label\">Sinu nimi</label>\r\n\t\t\t\t\t<div class=\"cols-sm-10\">\r\n\t\t\t\t\t\t<div class=\"input-group\">\r\n\t\t\t\t\t\t\t<span class=\"input-group-addon\"><i class=\"fa fa-user fa\" aria-hidden=\"true\"></i></span>\r\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"name\" id=\"name\" placeholder=\"Sisestage nimi\" value.bind=\"userData.name\"/>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"form-group\">\r\n\t\t\t\t\t<label for=\"email\" class=\"cols-sm-2 control-label\">Sinu meiliaadress</label>\r\n\t\t\t\t\t<div class=\"cols-sm-10\">\r\n\t\t\t\t\t\t<div class=\"input-group\">\r\n\t\t\t\t\t\t\t<span class=\"input-group-addon\"><i class=\"fa fa-envelope fa\" aria-hidden=\"true\"></i></span>\r\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"email\" id=\"email\" value.bind=\"userData.email\" placeholder=\"Sisestage meiliaadress\"/>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"form-group\">\r\n\t\t\t\t\t<label for=\"username\" class=\"cols-sm-2 control-label\">Kasutajanimi</label>\r\n\t\t\t\t\t<div class=\"cols-sm-10\">\r\n\t\t\t\t\t\t<div class=\"input-group\">\r\n\t\t\t\t\t\t\t<span class=\"input-group-addon\"><i class=\"fa fa-users fa\" aria-hidden=\"true\"></i></span>\r\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"username\" id=\"username\" placeholder=\"Sisestage kasutajanimi\" value.bind=\"userData.username\"/>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"form-group\">\r\n\t\t\t\t\t<label for=\"password\" class=\"cols-sm-2 control-label\">Parool</label>\r\n\t\t\t\t\t<div class=\"cols-sm-10\">\r\n\t\t\t\t\t\t<div class=\"input-group\">\r\n\t\t\t\t\t\t\t<span class=\"input-group-addon\"><i class=\"fa fa-lock fa-lg\" aria-hidden=\"true\"></i></span>\r\n\t\t\t\t\t\t\t<input type=\"password\" class=\"form-control\" name=\"password\" id=\"password\" placeholder=\"Sisestage parool\" value.bind=\"userData.password\"/>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"form-group\">\r\n\t\t\t\t\t<label for=\"confirm\" class=\"cols-sm-2 control-label\">Korrake parooli</label>\r\n\t\t\t\t\t<div class=\"cols-sm-10\">\r\n\t\t\t\t\t\t<div class=\"input-group\">\r\n\t\t\t\t\t\t\t<span class=\"input-group-addon\"><i class=\"fa fa-lock fa-lg\" aria-hidden=\"true\"></i></span>\r\n\t\t\t\t\t\t\t\t<input type=\"password\" class=\"form-control\" name=\"confirm\" id=\"confirm\" placeholder=\"Korrake parooli\" value.bind=\"userData.password2\"/>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"form-group \">\r\n\t\t\t\t\t<button type=\"submit\" class=\"btn btn-primary btn-lg btn-block login-button\">Registreeru</button>\r\n\t\t\t\t</div>\r\n\t\t\t</form>\r\n\t\t</div>\r\n\t</div>\r\n\t</div>\r\n\t</div>\r\n</template>"; });
+define('text!root.html', ['module'], function(module) { module.exports = "<template>\n\t<require from=\"css/root.css\"></require>\n\n  \t<h1>Tere! Oled Rahaplaneerija kodulehel!</h1>\n\n    <h2>Eelarve kalkulaator aitab sul hoida selget ülevaadet oma kulutustest ja tuludest!</h2>\n\n    <h3>Kõige parema kasutajakogemuse saamiseks logi sisse!</h3>\n\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map
