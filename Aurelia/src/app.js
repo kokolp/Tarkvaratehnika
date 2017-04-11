@@ -2,7 +2,6 @@ import {inject} from 'aurelia-framework';
 import {FetchConfig} from 'aurelia-auth';
 
 @inject(FetchConfig)
-
 export class App {
   constructor(fetchConfig) {
     this.fetchConfig = fetchConfig;
