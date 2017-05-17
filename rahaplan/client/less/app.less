@@ -1,0 +1,59 @@
+@import "_loader";
+@import '../bower_components/font-awesome/less/font-awesome';
+// TODO Customize Uikit
+@import '../bower_components/uikit/themes/almost-flat/uikit';
+@import '../bower_components/uikit/src/less/components/progress';
+@import '../bower_components/uikit/src/less/components/tooltip';
+@import '../bower_components/uikit/src/less/components/notify';
+.splash {
+  text-align: center;
+  margin-top: 5em;
+  color: @loader-background-color;
+  .message {
+    font-size: 8em;
+  }
+  .description {
+    margin-top: 2em;
+    font-size: 2em;
+  }
+}
+
+.tm-error-headline {
+    font-size: 100px;
+}
+
+.uk-text-muted {
+    color: #CCC !important;
+}
+
+.tm-error-icon {
+    font-size: 200px;
+}
+.uk-modal-header.error {
+   background-color: red;
+   color: white;
+}
+
+.uk-modal-header.success {
+   background-color: green;
+   color: white;
+}
+.uk-modal-header.warning {
+   background-color: #ff7f1e;
+   color: white;
+}
+
+.dev-badge {
+  position: absolute;
+  width: 149px;
+  height: 149px;
+  top: 0;
+  left: 0;
+  border: 0;
+  z-index: 1000;
+  background-image: url("../images/development_ribbon.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+
+}
+
