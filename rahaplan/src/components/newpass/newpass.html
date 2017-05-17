@@ -1,0 +1,16 @@
+<template>
+   <h1>NewPass</h1>
+   <h1>NewPass</h1>
+   <h1>${header}</h1>
+   
+   <br><br> 
+   
+   
+   <form role = "form" submit.delegate = "newpass()" >
+
+         <input  id="uuspsw" type="text" name="uuspsw" value.bind = "userData.email" placeholder="Sisesta email" onblur="NewPass()"/> 
+        <div><p id="uspsw"></p><h3>${uuspsw}</h3><input type="submit"  value="Parooli tellimine"/></div>
+
+
+    </form> 
+</template>
