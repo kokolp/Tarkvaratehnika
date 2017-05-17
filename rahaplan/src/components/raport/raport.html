@@ -1,0 +1,77 @@
+<template>
+<require from="components/sisse/sisse.css"></require>
+  <style>
+    #input-form input,
+    #input-form select {
+      width: 100%;
+    }
+  </style>
+  <article id="main" class="special">
+    <header>
+
+	<br><br><br><br>
+	<h2><a href="#/home" style="color:green"> Välja </a></h2>
+     
+       <h2><a href="#/sisse" style="color:black"> Kalkulaator</a></h2>
+    </header>
+    <hr/>
+    <div class="container">
+	 <h2>Võtta raporti</h2>
+      <form class="form-inline" submit.trigger="addLineFrom()" id="input-form">
+                 
+			</div>
+			         <div>Alg. kuupäev<input type="date" class="form-control" id="date" name="date" value.bind="userData.date">Lõpp. kuupäev<input type="date" class="form-control" id="date2" name="date2" value.bind="userData.date2"></div>
+          <div class="col-xs-1">
+          <button type="submit" class="btn btn-primary" id="lisa-rida">Vötta andmed baasist!</button><button type="button" click.trigger = "Kustuta()" >Kustuta kõik andmed!</button>
+         </div>
+       </form>
+       <hr>
+       <table class="table">
+         <thead>
+           <tr>
+             <th></th>
+             <th>Kulu </th>
+             <th>Tulu</th>
+             <th>Jääk</th>
+           </tr>
+         </thead>
+         <tbody>
+            <tr>
+              <td>Prognoositud</td>
+              <td textcontent.bind="expected.outcome"></td>
+              <td textcontent.bind="expected.income"></td>
+              <td textcontent.bind="expected.remainder"></td>
+            </tr >
+              <td>Tegelik</td>
+              <td textcontent.bind="actual.outcome"></td>
+              <td textcontent.bind="actual.income"></td>
+              <td textcontent.bind="actual.remainder"></td>
+            </tr>
+         </tbody>
+       </table> 
+      <table class="table">
+          <thead>
+            <tr>
+                <th>Nimetus</th>
+                <th>Sisesta eeldatav summa</th>
+                <th>Sisesta tegelik summa</th>
+                <th>Kulu või tulu</th>
+				 <th>Kuupaev</th>
+				 <th>Kustuta</th>
+                <th></th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr repeat.for="line of lines">
+              <td>${line.name}</td>
+              <td>${line.expectedSum}</td>
+              <td>${line.actualSum}</td>
+              <td>${line.type}</td>
+			  <td>${line.date}</td>
+              <td><button type="button" class="btn btn-danger" click.trigger="removeLine(line)">Kustuta</button></td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
+  </article>
+</template>
