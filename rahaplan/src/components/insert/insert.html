@@ -1,0 +1,19 @@
+<template>
+<br><br><br><br><br>
+  <form align="center" submit.trigger="addToArray()">
+    <input type='text' value.bind="hello" placeholder="Sisesta email " required /><br>
+	 <input type='text' value.bind="email" placeholder="Sisesta parool" required /><br>
+	  <input type='password' value.bind="password" placeholder="Korrage parool" required /><br>
+	   <input type='text' value.bind="nimi" placeholder="Sisesta nimi" required /><br>
+	    <input type='text' value.bind="pernimi" placeholder="Sisesta perekonnanimi" required /><br>
+		 <input type='text' value.bind="adress" placeholder="Sisesta adress" required /><br>
+		  <input type='text' value.bind="telefon" placeholder="Sisesta telefon" required /><br>
+    <input type='submit' click.delegate="showAlert()" click.trigger = "Kustuta()" value="add">
+    </form>
+
+    <ul>
+      <li repeat.for="a of array">${a}</li> <br>
+      </ul>
+
+</template>
+

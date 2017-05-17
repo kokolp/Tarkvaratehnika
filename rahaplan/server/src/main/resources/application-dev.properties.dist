@@ -1,0 +1,11 @@
+resources.projectroot=C:\Users\Kasutaja\Desktop\workspace-sts-3.8.3.RELEASE\rahaplan\rahaplan
+logging.level.ROOT=INFO
+logging.level.org.springframework=WARN
+spring.datasource.url=jdbc:postgresql://localhost/rahaplan
+spring.datasource.username=rahaplan
+spring.datasource.password=1234
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.thymeleaf.cache=false
+spring.template.cache=false
+spring.thymeleaf.prefix=file:///${resources.projectroot}/server/src/main/resources/templates/
