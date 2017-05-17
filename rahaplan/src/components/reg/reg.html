@@ -1,0 +1,23 @@
+<template>
+ <h1>${header}</h1>
+ 
+   <br><br><br><br>
+     <h1>${header}</h1>
+	  <article id="main" class="special" align="center">
+	  <fieldset >
+    <form  role = "form" class="form-inline" submit.delegate="addUser()">
+
+         <div><input type="text" name="uemail" value.bind="userData.email"  placeholder="Sisesta email" required/></div><div><p id="uem"></p> </div>
+         <div><input type="password" name="userpassword_1" value.bind="userData.userpassword_1"  placeholder="Sisesta parool" required/></div><div> <p id="upsw"></p></div>
+		 <div><input type="password" name="userpassword_2" value.bind="userData.userpassword_2"placeholder="Korrage parool" required/></div><div> <p id="upsw2"></p></div>
+         <div><input type="text" name="usernimi" value.bind="userData.usernimi" placeholder="Sisesta nimi" required/></div><div><p id="umi"></p> </div>
+         <div><input type="text" name="userperekonnanimi" value.bind="userData.userperekonnanimi" placeholder="Sisesta perekonnanimi"   required/></div><div><p id="upn"></p> </div>
+         <div><input type="text" name="useradress" value.bind="userData.useradress" placeholder="Sissestage adress"required/></div><div><p id="adr"></p> </div>
+         <div><input type="text" name="usertelefon" value.bind="userData.usertelefon"  placeholder="Sisesta telefoni number (372)" required/></div><div><p id="ut"></p> </div>
+         <div> </div>
+         <div><input type="submit"  value="Registreeri"/></div>
+
+
+    </form>  </fieldset> 
+ </article>	
+</template>

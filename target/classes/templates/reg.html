@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+ <!--For the web site to work on all devices and screen resolutions -->
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="styles.css"/>
+ <title>Rahaplaneerija</title>
+ </head>
+ <body>
+ <div class="header">
+        
+        <div class="container">
+           <div class="logo">
+                <h1><a href="login.html">Rahaplaneerija</a></h1>
+            </div>
+            
+            <div class="nav">
+                <ul>
+                    <li><a href="login.html">Pealeht</a></li>
+                    <li><a href="saastmisekalkulaator.html">Säästmise kalkulaator</a></li>
+                    <li><a href="tingimused.html">Tingimused</a></li>
+                    <li><a href="meist.html">Meist</a></li>
+                </ul>
+            </div>
+     <div th:if="${param.error}">
+        <h1 style="color:red">Kasutajanimi voi parool vale! Proovi uuesti.</h1>
+ 
+     </div>
+     <div th:if="${param.logout}">
+         <h1 style="color:blue">Välja.</h1>
+     </div>
+     
+     
+    
+     <div>
+     <fieldset><form th:action="@{/login}" method="post">
+         <div><a href="">Kasutajanimi:</a> <input type="text" name="username"/> </div>
+         <div><a href="">Parool: </a><input type="password" name="password"/> </div>
+         <div><a href="">Jäta mind meelde: </a><input type="checkbox" name="remember-me" /> </div>
+         <div><input type="submit" value="Logi sisse"/></div>
+         <span class="psw">Unustasid <a href="newpass.html">parooli?</a></span>
+         <span class=""><a id="registreeri" href="reg.html">Registreeri</a></span>
+     </form></fieldset>
+     </div>
+     
+     
+     </div>
+            </div>
+   
+    
+    
+
+
+    <div class="container">
+    <div class="content_main">
+         
+     <form th:action="@{/reg}" method="post" submit="Registr()" >
+
+         <div>E-mail: <input type="text" name="uemail" onblur="Email()"/></div><div><p id="uem"></p> </div>
+         <div>Parool: <input type="password" name="userpassword_1" onblur="Pass()" /></div><div> <p id="upsw"></p></div>
+         <div>Nimi: <input type="text" name="usernimi" onblur="uNim()" /></div><div><p id="umi"></p> </div>
+         <div>Perekonnanimi: <input type="text" name="userperekonnanimi" onblur="UsPer()" /></div><div><p id="upn"></p> </div>
+         <div>Adress: <input type="text" name="useradress" onblur="Adr()"/></div><div><p id="adr"></p> </div>
+         <div>Telefon (+372): <input type="text" name="usertelefon" onblur="Tel()"/></div><div><p id="ut"></p> </div>
+         
+         <div>*Loen ja nõustun teenuse tingimused: <input type="checkbox" name="remember-me" /></div>
+         <div> </div>
+         <div><input type="submit"  value="Saada andmed"/></div>
+
+
+    </form>
+    <script>
+///////////////////////////////////////////
+
+    var userMail=document.getElementById("uemail").value;
+     var userPasswrd1=document.getElementById("userpassword_1").value;
+     var uName=document.getElementById("usernimi").value;
+     var uPerenimi=document.getElementById("userperekonnanimi").value;
+     var uAdress=document.getElementById("useradress").value;
+     var uTelefon=document.getElementById("usertelefon").value;
+     
+      function Registr() { 
+      if (userMail == ''|| userPasswrd1==''|| uName=='' || uPerenimi=='' || uAdress==''|| uTelefon=='' ){
+       alert("Taita koik ");
+      
+       return true;
+      }else
+      alert("Olete registreerinud, linki saadetud emaile.");
+      return false;
+       
+     }
+     
+     function Tel(){
+    	 
+    	if(/^\d{8}$/.test(document.reg.usertelefon.value) ) {
+    		uTelefon.focus;
+    		text=" ok";
+    		return true;
+    	}else{text="vale, sissestage telefoni number naiteks: xxxxxxxxxx";}
+    	
+    	document.getElementById("ut").innerHTML=text; 
+     }
+
+     
+     function uNim(){
+   	  
+   	  if(/^[A-Za-z]+$/.test(document.reg.usernimi.value)) {
+   		 uName.focus; 
+   		text="ok";
+   		return true;
+   	}else{text="vale, kasutage A-z ";}
+   	
+   	document.getElementById("umi").innerHTML=text; 
+   	  
+     }
+    
+     function UsPer(){
+   	  
+   	  if( /^[A-Za-z]+$/.test(document.reg.userperekonnanimi.value)) {
+   		 uPerenimi.focus; 
+   		text="ok";
+   		return true;
+   	}else{text="vale, kasutage A-z ";}
+   	
+   	document.getElementById("upn").innerHTML=text; 
+   	  
+     }
+
+     function Adr(){
+   	  
+   	  if(/[A-Za-z0-9]+$/.test(document.reg.useradress.value)) {
+   	    uAdress.focus;  
+   		text="ok";
+   		return true;
+   	}else{text="vale, kasutage A-z ja numbrid 0-9";}
+   	document.getElementById("adr").innerHTML=text; 
+   	  
+     }
+    function Email(){ 
+   	  if(/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9_\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(document.reg.uemail.value) ){
+   		userMail.focus;
+   		text="ok";
+   		return true;
+   	}else{
+   		text="vale, sissestage korrektne e-mail aadress ";
+   	}
+   	
+   	     document.getElementById("uem").innerHTML=text; 
+    }
+     
+     function Pass(){
+   	  
+   	  
+   	  if(/[A-Za-z0-9].{5,20}$/.test(document.reg.userpassword_1.value) ) {
+   		  userPasswrd1.focus;
+   		text="ok";
+   		return true;
+   	  }else{text="vale, peab olema 6-20 tahti A-z 0-9.";}
+   	
+   	     document.getElementById("upsw").innerHTML=text; 
+   	  
+     }
+     
+    
+    
+    </script>
+    
+     
+   
+     
+
+       
+    </div>
+  
+    </div>
+   
+ </body>
+</html>

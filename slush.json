@@ -1,0 +1,12 @@
+{
+    "appName": "rahaplan",
+    "appDescription": "",
+    "appVersion": "0.1.0",
+    "appAuthor": "",
+    "appEmail": "kotjamba_34@yahoo.com",
+    "scalaVersion": "2.11.7",
+    "springPlatVersion": "2.0.2.RELEASE",
+    "packageName": "com.mycompany.product",
+    "moveon": true,
+    "projectLocation": "C:\\Users\\Kasutaja\\Desktop\\github\\new rahaplan\\rahaplan"
+}
