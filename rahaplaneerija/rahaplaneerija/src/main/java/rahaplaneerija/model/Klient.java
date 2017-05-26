@@ -1,62 +1,84 @@
 package rahaplaneerija.model;
 
 
-///import javax.servlet.jsp.tagext.* ;
-import javax.servlet.jsp.* ;
-import java.io.* ;
-import java.util.Set;
-//import java.persistence.*;
+import java.util.concurrent.atomic.AtomicLong;
 
-import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.annotation.Generated;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.PersistenceConstructor;
 
+@EntityScan
 
-//@Entity
-//@Table(name="Klient")
-public class Klient {
-
-	public Klient() {
+//@Table(name="klient")
+public class Klient  {
+	 private static final long serialVersionUID = 1L;
+        @Autowired
+		@Id
+		@Generated(value = { "" })
+		int ID;
+         String email;
+         String password;
+    	 String nimi;
+    	 String per_nimi;
+    	 String adress;
+    	 String telefon;
+    	 String role;
+    	@Autowired
+		//@OneToOne()
+    	 Info info;
+		private String infoID;
+    	private static AtomicLong COUNTER = new AtomicLong(0L);	
+    	
+    	@PersistenceConstructor
+        public Klient(String string, String string2, String string3, String string4, String string5, String string6) {
+           
+        }
+    	 @Override
+    	    public String toString() {
+    	        return String.format("Klient[ID=%d, nimi='%s', per_nimi='%s']", ID, nimi, per_nimi);
+    	    }
+    	 
+	//public Klient() {
 		// TODO Auto-generated constructor stub
-		//@Id
-		//@GeneratedValue(Strategi=GenerationType.AUTO)
-		private int ID;
-		public int getID() {
-			return ID; 
-			}
+	//}
+		
+		int getID() 
+		 {
+			return this.ID; 
+		 }
 		public void setID(int ID)
 		{
 			this.ID = ID; 
 		}
 
 		//@Column (name="uname")
-		private String uname;
 		
-		public String getUname() {
-			return uname; 
+		
+		public String getEmail() {
+			return email; 
 			}
-		public void setUname(String uname)
+		@Autowired
+		public void setUname(String email)
 		{
-			this.uname = uname; 
+			this.email = email; 
 		}
 
 		//@Column (name="psw")
-		private String psw;
-		public String getPsw() 
+		
+		public String getPassword() 
 		{
-			return psw;
+			return password;
 		}
-		public void setPsw(String psw)
+		public void setPassword(String password)
 		{ 
-			this.psw = psw;
+			this.password = password;
 		}
 		
 		//@Column (name="nimi")
-		private String nimi;
+	
 		
 		public String getNimi()
 		{
@@ -68,7 +90,7 @@ public class Klient {
 		}
 
 		///@Column (name="per_nimi")
-		private String per_nimi;
+		
 		
 		public String getPer_nimi() {
 			return per_nimi; 
@@ -79,7 +101,7 @@ public class Klient {
 		}
 		
 		//@Column (name="adress")
-		private String adress;
+	
 		
 		public String getAdress() {
 			return adress; 
@@ -90,7 +112,7 @@ public class Klient {
 		}
 
 		//@Column (name="telefon")
-		private String telefon;
+		
 		
 		public String getTelefon() {
 			return telefon; 
@@ -101,32 +123,44 @@ public class Klient {
 		}
 		
 		//@Column (name="role")
-		private String role;
+		
 		
 		public String getRole() {
 			return role; 
 			}
-		public void setRole(String role)
+		public void setRole ( String role)
 		{
 			this.role = role; 
 		}
 
 		//@Column (name="infoID")
-		private String infoID;
+		
 		
 		public String getInfoID() {
 			return  infoID; 
 			}
+		
 		public void setInfoID(String  infoID)
 		{
 			this.infoID = infoID; 
 		}
+		public void setInfo(Info info2) {
+			// TODO Auto-generated method stub
+			
+		}
+	
+	
+	
+	//@Override
+	
+	//public static void main(String[] args) {
 		
+	   
+	       // return "Klient{" +
+	           //     ", uname='" + uname + '\'' +
+	            //    ", psw=" + psw +
+	            //    '}';
+	  //  }
+	
 	}
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
-}
