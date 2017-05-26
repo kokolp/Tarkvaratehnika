@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+ <!--For the web site to work on all devices and screen resolutions -->
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+ <link rel="stylesheet" type="text/css" href="styles.css"/>
+ <title>Rahaplaneerija</title>
+ <style>
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    text-align: left;
+    padding: 8px;
+    
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
+
+th {
+    background-color: black;
+    color: white;
+}
+</style>
+ </head>
+ <body>
+ <div class="header">
+        
+        <div class="container">
+           <div class="logo">
+                <h1><a href="">Rahaplaneerija</a></h1>
+            </div>
+          <div class="nav" >
+                <ul>
+                 
+                    <li><a href="/">Kalkulaator</a></li>
+                    <li><a href="omaAndmed.html">Seadmed</a></li>
+                    <li><a href="raport.html">Raport</a></li>
+                   
+                </ul>
+            </div>  
+     <div th:if="${param.error}">
+        <h1 style="color:red">Kasutajanimi voi parool vale! Proovi uuesti.</h1>
+ 
+     </div>
+     <div th:if="${param.logout}">
+         <h1 style="color:blue">Välja.</h1>
+     </div>
+     
+     
+     
+    
+<h1 style="color: green">Teretulemast, <a th:href="${auth}"></a>!</h1>
+  <span class=""><a id="valja" href="login.html">Välja</a></span>   
+       
+      </div>
+            </div>
+   
+    
+    
+
+
+    <div class="container">
+    <div class="content_main">
+      
+      <table id="table2" >
+        <tr>
+            <td><button type="button" onclick="Uuenda()" >Uuenda andmed tabelis</button></td>
+            <td>Tulud kokku</td>
+            <td>Kulud kokku</td>
+            <td>Jääk</td>
+        </tr>
+        <tr>
+            <td>Prognoositud</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>Tegelik</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+        </tr>
+    
+    </table>
+     
+
+      
+      <form th:action="@{/Kalk}" th:object="${InfoForm}" method="post">
+               <fieldset>
+         <legend>Sissestage andmed:</legend>
+         
+         <div>Kuupäev<input type="date" class="input-column" id="date" name="date" /></div>
+         <div>Nimetus: <input type="text" class="input-column" id="liik" name="liik" placeholder="Sisesta nimi" /></div>
+         <div>Eeldatav summ: <input type="text"  class="input-column" id="summa" name="summa" placeholder="Sisesta eeldatav summa" /> </div>
+         <div>Tegelik summ: <input type="text"  class="input-column" id="summa2" name="summa2" placeholder="Sisesta tegelik summa" /> </div>
+         <div><select size="1" class="input-column" id="kulutulu" name="kulutulu">Kulu voi tulu: 
+         <option value="Kulu" selected="selected">
+            Kulu
+          </option>
+          <option value="Tulu">
+            Tulu
+          </option>
+       </select> </div>
+        
+         <div> <button type="button" class="input-column" id="lisa-rida">Lisa!</button><button type="button" onclick="kustuta()" >Kustuta andmed!</button></div>
+         
+</fieldset>
+    </form>
+      <div><button onclick="Print()">Print </button><button onclick="PDF()">Salvesta PDF</button></div> 
+     <table id="table" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Nimetus</th>
+                <th>Eeldatav summa</th>
+                <th>Tegelik summa</th>
+                <th>Kulu või tulu</th>
+                <th>Kuupäev</th>
+                <th> Kustuta</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table> 
+    
+    <script >
+   
+    
+    function Print() {
+        window.print();
+    }
+    function PDF() {
+        window.print();
+    }
+    
+    function deleteRow(r) {
+        var i = r.parentNode.parentNode.rowIndex;
+        document.getElementById("table-body").deleteRow(i-1);
+        
+        
+    }
+    
+    function kustuta(){
+    	
+   	 location.reload(true);
+   }
+
+    document.getElementById("lisa-rida").onclick = function () {
+        var liik = document.getElementById("liik").value;
+        var summa = parseInt(document.getElementById("summa").value, 10);
+        var summa2 = parseInt(document.getElementById("summa2").value, 10);
+        var kulutulu = document.getElementById("kulutulu").value;
+        var x = document.getElementById("date").value;
+        
+        var ridaElement = document.createElement('tr');
+        var rida = '<td>' + liik + '</td>\n';
+        rida += '<td>' + summa + '</td>\n';
+        rida += '<td>' + summa2 + '</td>\n';
+        rida += '<td>' + kulutulu + '</td>\n';
+        rida += '<td>' + x + '</td>\n';
+        rida += '<td><input type="button" value="delete" onclick="deleteRow(this)"/></td>\n'; 
+       
+        ridaElement.innerHTML = rida;
+     
+        document.getElementById("table-body").appendChild(ridaElement);   
+
+    	var table = document.getElementById("table2");
+    	var prognoositudtuludkokku = parseInt(table.rows[1].cells[1].innerHTML,10);
+        var prognoositudkuludkokku = parseInt(table.rows[1].cells[2].innerHTML,10);
+        var prognoositudjääk = parseInt(table.rows[1].cells[3].innerHTML,10);
+        var tegeliktuludkokku = parseInt(table.rows[2].cells[1].innerHTML,10);
+        var tegelikkuludkokku = parseInt(table.rows[2].cells[2].innerHTML,10);
+        var tegelikjääk = parseInt(table.rows[2].cells[3].innerHTML,10);
+        
+        if (kulutulu === "Tulu") {
+            prognoositudtuludkokku += summa;
+            tegeliktuludkokku += summa2;
+            
+            table.rows[1].cells[1].innerHTML = prognoositudtuludkokku;
+            table.rows[2].cells[1].innerHTML = tegeliktuludkokku; 
+        } else if (kulutulu === "Kulu") {
+            prognoositudkuludkokku += summa;
+            tegelikkuludkokku += summa2;
+            
+            table.rows[1].cells[2].innerHTML = prognoositudkuludkokku;
+            table.rows[2].cells[2].innerHTML = tegelikkuludkokku;
+        }
+    	// Jäägi arvutamine  
+    	table.rows[1].cells[3].innerHTML = prognoositudtuludkokku - prognoositudkuludkokku;
+        table.rows[2].cells[3].innerHTML = tegeliktuludkokku - tegelikkuludkokku;   
+        
+    };
+
+    </script>    
+    </div>
+  
+    </div>
+   
+ </body>
+
+</html>

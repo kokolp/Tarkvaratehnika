@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+ <!--For the web site to work on all devices and screen resolutions -->
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+ <link rel="stylesheet" type="text/css" href="styles.css"/>
+ <title>Rahaplaneerija</title>
+ <style>
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    text-align: left;
+    padding: 8px;
+    
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
+
+th {
+    background-color: black;
+    color: white;
+}
+</style>
+ </head>
+ <body>
+ <div class="header">
+        
+        <div class="container">
+           <div class="logo">
+                <h1><a href="">Rahaplaneerija</a></h1>
+            </div>
+          <div class="nav" >
+                <ul>
+                 
+                    <li><a href="/">Kalkulaator</a></li>
+                    <li><a href="omaAndmed.html">Seadmed</a></li>
+                    <li><a href="raport.html">Raport</a></li>
+                   
+                </ul>
+            </div>  
+     <div th:if="${param.error}">
+        <h1 style="color:red">Kasutajanimi voi parool vale! Proovi uuesti.</h1>
+ 
+     </div>
+     <div th:if="${param.logout}">
+         <h1 style="color:blue">Välja.</h1>
+     </div>
+     
+     
+     
+    
+<h1 style="color: green">Teretulemast, <a th:href="${auth}"></a>!</h1>
+  <span class=""><a id="valja" href="login.html">Välja</a></span>   
+       
+      </div>
+            </div>
+   
+    
+    
+
+
+    <div class="container">
+    <div class="content_main">
+      
+      
+ 
+    </div>
+  
+    </div>
+   
+ </body>
+
+</html>
