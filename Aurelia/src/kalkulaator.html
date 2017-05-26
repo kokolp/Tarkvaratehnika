@@ -1,0 +1,85 @@
+<template>
+  <style>
+    #input-form input,
+    #input-form select {
+      width: 100%;
+    }
+  </style>
+  <article id="main" class="special">
+    <header>
+      <h2>Eelarve kalkulaator</h2>
+      <span class="byline"> Kalkulaatori kasutamine on imelihtne - sisesta eeldatud ning prognoositav kulu või tulu ning vajuta "Lisa!" ja sinu andmed kuvatakse.</span> 
+    </header>
+    <hr/>
+    <div class="container">
+      <form class="form-inline" submit.trigger="addLine()" id="input-form">
+          <div class="col-xs-3">
+            <input type="text" class="form-control" id="liik" name="liik" placeholder="Sisesta nimi" value.bind="name">
+          </div>
+          <div class="col-xs-3">
+           <input type="number" class="form-control" id="summa" name="summa" placeholder="Sisesta eeldatav summa" value.bind="expectedSum">
+          </div>
+          <div class="col-xs-3">
+            <input type="number" class="form-control" id="summa2" name="summa2" placeholder="Sisesta tegelik summa" value.bind="actualSum">
+          </div>  
+          <div class="col-xs-2">
+            <select size="1" class="form-control" id="kulutulu" name="kulutulu" value.bind="type">
+              <option value="Kulu" selected="selected">
+                Kulu
+              </option>
+              <option value="Tulu">
+                Tulu
+              </option>
+            </select>
+          </div>
+          <div class="col-xs-1">
+          <button type="submit" class="btn btn-primary" id="lisa-rida">Lisa!</button>
+         </div>
+       </form>
+       <hr>
+       <table class="table">
+         <thead>
+           <tr>
+             <th></th>
+             <th>Kulu</th>
+             <th>Tulu</th>
+             <th>Jääk</th>
+           </tr>
+         </thead>
+         <tbody>
+            <tr>
+              <td>Prognoositud</td>
+              <td textcontent.bind="expected.outcome"></td>
+              <td textcontent.bind="expected.income"></td>
+              <td textcontent.bind="expected.remainder"></td>
+            </tr >
+              <td>Tegelik</td>
+              <td textcontent.bind="actual.outcome"></td>
+              <td textcontent.bind="actual.income"></td>
+              <td textcontent.bind="actual.remainder"></td>
+            </tr>
+         </tbody>
+       </table> 
+      <table class="table">
+          <thead>
+            <tr>
+                <th>Nimetus</th>
+                <th>Sisesta eeldatav summa</th>
+                <th>Sisesta tegelik summa</th>
+                <th>Kulu või tulu</th>
+                <th></th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr repeat.for="line of lines">
+              <td>${line.name}</td>
+              <td>${line.expectedSum}</td>
+              <td>${line.actualSum}</td>
+              <td>${line.type}</td>
+              <td><button type="button" class="btn btn-danger" click.trigger="removeLine(line)">Kustuta</button></td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
+  </article>
+</template>

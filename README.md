@@ -1,4 +1,9 @@
-# Tarkvaratehnika
-Projekt aines tarkvaratehnika
+# rahaplan
 
-Link Google Drive'le: https://drive.google.com/drive/folders/0Bx0aY4YWbWRtc2RNRFFnOVdBZTQ?usp=sharing
+
+
+If you are new to this project, I hight recommend you start reading the [Client Page](client.md). Then the [Server](server.md) page. And you are good to go
+
+Go to the [online automatic builder docs](http://rahaplan-doc.s3-website-sa-east-1.amazonaws.com)
+
+Go to the [Local Docs](./docs/index.md)

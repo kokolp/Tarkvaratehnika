@@ -1,0 +1,70 @@
+plugins {
+    id 'com.moowork.node' version '0.11'
+}
+
+apply plugin: 'java'
+apply plugin: 'com.moowork.node'
+
+version = appVersion
+
+node {
+    download = false
+}
+
+jar {
+    baseName "touch-client"
+    from 'dist'
+    eachFile { details ->
+        details.path = details.path.startsWith('META-INF') ?: 'static/'+details.path
+    }
+    // Jar contains duplicate empty folders, see Gradle issue:
+    // http://issues.gradle.org/browse/GRADLE-1830
+    // so we need to set includeEmptyDirs to false
+    includeEmptyDirs = false
+
+}
+
+// Roda o build do javascript
+task npmBuild(dependsOn: npmInstall, type: NpmTask) {
+    inputs.dir "src"
+    inputs.dir "test"
+    inputs.file "config.js"
+    outputs.dir "dist"
+    args = ['run', 'build']
+}
+
+
+task jspmInstall(type: Exec){
+    executable 'jspm'
+    args 'install', '-q'
+}
+task bowerInstall(type: Exec){
+    executable 'bower'
+    args 'install'
+}
+
+task tsdInstall(type: Exec){
+    executable 'tsd'
+    args 'install'
+}
+
+task initProject(dependsOn: [
+        npmInstall,
+        bowerInstall,
+        jspmInstall,
+        tsdInstall
+])
+
+task testClient(type: Exec){
+    executable 'gulp'
+    args 'test'
+    inputs.dir "src"
+    inputs.dir "test"
+    inputs.file "karma.conf.js"
+    outputs.dir "dist"
+}
+
+// Antes de fazer o jar, roda o build
+jar.dependsOn npmBuild
+// Hook testClient
+test.dependsOn testClient

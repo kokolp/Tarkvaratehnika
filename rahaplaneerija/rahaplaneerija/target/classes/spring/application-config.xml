@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    
+    <!-- Uncomment and add your base-package here:
+         <context:component-scan
+            base-package="org.springframework.samples.service"/>  -->
+     
+      <context:annotation-config></context:annotation-config>
+            <context:property-placeholder location="classpath:connect.properties"/>
+            <context:component-scan base-package="rahaplaneerija.connect"></context:component-scan>
+            <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+                  <property name="driverClassName" value="com.mysql.jdbs.Driver"/>
+                  <property name="url" value="${db.url}"/>
+                  <property name="username" value="${db.username}"/>
+                  <property name="password" value="${db.password}"/>
+    
+             </bean>
+
+    <bean name="LoginProcess"  class="rahaplaneerija.MapingProcess" scope="session">
+    
+     <property name="AndmedKlient">
+       <map>
+          <entry key="root">
+             <bean class="rahaplaneerija.model.Klient">
+                  <property name="uname" value="root"/>
+                  <property name="psw" value="root"/>
+    
+    
+             </bean>
+          </entry>
+      </map>
+     </property>
+    </bean>
+</beans>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+ <!--For the web site to work on all devices and screen resolutions -->
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="styles.css"/>
+ <title>Rahaplaneerija</title>
+ </head>
+ <body>
+ <div class="header">
+        
+        <div class="container">
+           <div class="logo">
+                <h1><a href="login.html">Rahaplaneerija</a></h1>
+            </div>
+            
+            <div class="nav">
+                <ul>
+                    <li><a href="login.html">Pealeht</a></li>
+                    <li><a href="saastmisekalkulaator.html">Säästmise kalkulaator</a></li>
+                   <li><a href="tingimused.html">Tingimused</a></li>
+                    <li><a href="meist.html">Meist</a></li>
+                </ul>
+            </div>
+     <div th:if="${param.error}">
+        <h1 style="color:red">Kasutajanimi voi parool vale! Proovi uuesti.</h1>
+ 
+     </div>
+     <div th:if="${param.logout}">
+         <h1 style="color:blue">Välja.</h1>
+     </div>
+     
+     
+    
+     <div>
+     <fieldset><form th:action="@{/login}" method="post">
+         <div><a href="">Kasutajanimi:</a> <input type="text" name="username"/> </div>
+         <div><a href="">Parool: </a><input type="password" name="password"/> </div>
+         <div><a href="">Jäta mind meelde: </a><input type="checkbox" name="remember-me" /> </div>
+         <div><input type="submit" value="Logi sisse"/></div>
+         <span class="psw">Unustasid <a href="newpass.html">parooli?</a></span>
+         <span class=""><a id="registreeri" href="reg.html">Registreeri</a></span>
+     </form></fieldset>
+     </div>
+     
+     
+      </div>
+            </div>
+   
+    
+    
+
+
+    <div class="container">
+    <div class="content_main">
+      <h1 style="color: green">Meist !</h1>  
+      
+       
+    </div>
+  
+    </div>
+   
+ </body>
+</html>
